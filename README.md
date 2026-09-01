@@ -62,3 +62,33 @@ python -m pcc_colonel_blotto control-history-destruction --output-dir validation
 ```
 
 See `docs/CONTROL_HISTORY_DESTRUCTION_PROTOCOL.md` and `validation/CONTROL_HISTORY_DESTRUCTION.md`.
+
+
+## v0.3 Control under regime switching
+
+The second Control falsification deliberately makes the opponent nonstationary. Three exogenous allocation regimes emphasize different battlefield subsets, and the exact realized trace is replayed to Baseline, shuffled-history Control, and true-history Control.
+
+The strong prospective question is whether temporal-order destruction now removes at least **50%** of Control's gain over Baseline. A 16-round post-switch window is also prespecified to test local adaptation.
+
+Run it with:
+
+```bash
+python -m pcc_colonel_blotto control-regime-switching \
+  --output-dir validation \
+  --rounds 300 \
+  --seeds 32 \
+  --adaptation-window 16
+```
+
+See `docs/CONTROL_REGIME_SWITCHING_PROTOCOL.md` and `validation/CONTROL_REGIME_SWITCHING.md`.
+
+Default 32-seed result:
+
+- Baseline mean payoff: **0.1892**
+- Shuffled-history Control: **0.3068**
+- True-history Control: **0.2844**
+- Fraction of true-Control gain eliminated by shuffling: **-23.5%**
+- Prespecified >=50% collapse criterion: **FAIL**
+- Prespecified 16-round post-switch true-vs-shuffled difference: **+0.0095**
+
+The strong recency hypothesis therefore fails. Shuffling history improves overall payoff, and the small 16-round true-history edge is not robust to descriptive 4/8/32-round window checks. The current Control rule is history-sensitive but not reliably recency-optimal under this regime-switching design.

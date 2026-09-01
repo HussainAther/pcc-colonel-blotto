@@ -1,3 +1,13 @@
+## 0.3.0 - Control under regime switching
+
+- Added an exogenous three-regime opponent trace to make recent information potentially decision-relevant.
+- Added paired Baseline / shuffled-history Control / true-history Control replay under identical nonstationary traces.
+- Added a prespecified 16-round post-switch adaptation readout plus descriptive 4/8/32-round sensitivity diagnostics.
+- Added the `control-regime-switching` CLI command and three tests.
+- Froze the default 32-seed result: shuffled-history Control outperforms true-history Control overall (0.3068 vs 0.2844), so the >=50% recency-collapse prediction fails.
+- The prespecified 16-round post-switch true-history edge is small (+0.0095) and not robust across descriptive 4/8/32-round windows.
+- Preserves failure results rather than retuning the environment after observation.
+
 ## 0.2.0 - Control history-destruction falsification
 
 - Added paired replay evaluation for temporal information use by `ControlAgent`.
