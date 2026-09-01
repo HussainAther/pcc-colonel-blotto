@@ -1,0 +1,916 @@
+{
+  "schema": "pcc-colonel-blotto-control-history-destruction-v0.2",
+  "game": {
+    "troops": 10,
+    "values": [
+      1.0,
+      1.5,
+      2.0,
+      2.5,
+      3.0
+    ],
+    "battlefields": 5
+  },
+  "design": {
+    "rounds_per_seed": 250,
+    "seeds": 32,
+    "opponent_trace": "AdaptiveCounterOpponent generated against ValueBaseline, then replayed identically across conditions",
+    "ablation": "permute complete observed opponent history before Control; preserve history multiset exactly at every decision",
+    "control_lookback": 8,
+    "primary_threshold": "at least 50% of true Control payoff gain over Baseline is eliminated"
+  },
+  "aggregate": {
+    "baseline_mean_payoff": -0.19004374999999976,
+    "shuffled_control_mean_payoff": 0.1923062499999993,
+    "true_control_mean_payoff": 0.22498124999999924,
+    "true_control_gain_over_baseline": 0.415024999999999,
+    "shuffled_control_gain_over_baseline": 0.3823499999999991,
+    "fraction_control_gain_retained_after_shuffle": 0.9212698030239143,
+    "fraction_control_gain_eliminated_after_shuffle": 0.07873019697608574,
+    "baseline_win_rate": 0.004750000000000002,
+    "shuffled_control_win_rate": 0.9882499999999997,
+    "true_control_win_rate": 0.978625
+  },
+  "prespecified_checks": {
+    "true_control_beats_baseline": {
+      "pass": true,
+      "gain": 0.415024999999999
+    },
+    "history_shuffle_hurts_control": {
+      "pass": true,
+      "delta_shuffled_minus_true": -0.032674999999999954
+    },
+    "history_shuffle_eliminates_at_least_half_control_gain": {
+      "pass": false,
+      "fraction_eliminated": 0.07873019697608574,
+      "threshold": 0.5
+    }
+  },
+  "seed_results": [
+    {
+      "seed": 0,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.18539999999999981,
+        "win_rate": 0.008,
+        "allocation_entropy": 0.7873232354112696,
+        "mean_concentration": 0.3015999999999986
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.19439999999999924,
+        "win_rate": 1.0,
+        "allocation_entropy": 0.4883589225812343,
+        "mean_concentration": 0.3063999999999986
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.21579999999999935,
+        "win_rate": 0.992,
+        "allocation_entropy": 1.1374689755316274,
+        "mean_concentration": 0.3235999999999989
+      }
+    },
+    {
+      "seed": 1,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.18759999999999985,
+        "win_rate": 0.0,
+        "allocation_entropy": 0.9257152124999486,
+        "mean_concentration": 0.3027999999999987
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.17079999999999937,
+        "win_rate": 0.992,
+        "allocation_entropy": 0.5830987010556512,
+        "mean_concentration": 0.3039999999999987
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.23179999999999923,
+        "win_rate": 0.972,
+        "allocation_entropy": 1.296167297948722,
+        "mean_concentration": 0.33799999999999913
+      }
+    },
+    {
+      "seed": 2,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.2009999999999998,
+        "win_rate": 0.004,
+        "allocation_entropy": 0.8421508730255769,
+        "mean_concentration": 0.3011999999999987
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.20439999999999917,
+        "win_rate": 0.988,
+        "allocation_entropy": 0.7554992699407266,
+        "mean_concentration": 0.3207999999999989
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.2341999999999991,
+        "win_rate": 0.984,
+        "allocation_entropy": 1.1942427100999025,
+        "mean_concentration": 0.33839999999999915
+      }
+    },
+    {
+      "seed": 3,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.19859999999999978,
+        "win_rate": 0.004,
+        "allocation_entropy": 0.7894033436297736,
+        "mean_concentration": 0.30119999999999864
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.1817999999999993,
+        "win_rate": 0.996,
+        "allocation_entropy": 0.6032544747431059,
+        "mean_concentration": 0.3047999999999986
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.23439999999999936,
+        "win_rate": 0.992,
+        "allocation_entropy": 1.2041120750990753,
+        "mean_concentration": 0.33279999999999943
+      }
+    },
+    {
+      "seed": 4,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.19019999999999976,
+        "win_rate": 0.008,
+        "allocation_entropy": 0.8191885864463719,
+        "mean_concentration": 0.3015999999999986
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.21559999999999918,
+        "win_rate": 0.996,
+        "allocation_entropy": 0.5386977478721631,
+        "mean_concentration": 0.31319999999999854
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.2403999999999993,
+        "win_rate": 0.992,
+        "allocation_entropy": 1.116571599953691,
+        "mean_concentration": 0.3291999999999989
+      }
+    },
+    {
+      "seed": 5,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.19359999999999986,
+        "win_rate": 0.004,
+        "allocation_entropy": 0.8392844874604841,
+        "mean_concentration": 0.3007999999999986
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.21559999999999907,
+        "win_rate": 0.996,
+        "allocation_entropy": 0.6615839899978301,
+        "mean_concentration": 0.3187999999999988
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.235399999999999,
+        "win_rate": 0.98,
+        "allocation_entropy": 1.1850334573899899,
+        "mean_concentration": 0.33479999999999877
+      }
+    },
+    {
+      "seed": 6,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.18419999999999973,
+        "win_rate": 0.004,
+        "allocation_entropy": 0.8425810416522515,
+        "mean_concentration": 0.30119999999999864
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.17719999999999939,
+        "win_rate": 0.976,
+        "allocation_entropy": 0.7372280019815232,
+        "mean_concentration": 0.3035999999999986
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.2077999999999992,
+        "win_rate": 0.964,
+        "allocation_entropy": 0.9787936634565475,
+        "mean_concentration": 0.31679999999999886
+      }
+    },
+    {
+      "seed": 7,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.18899999999999986,
+        "win_rate": 0.016,
+        "allocation_entropy": 0.9403027547799578,
+        "mean_concentration": 0.3039999999999987
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.18539999999999932,
+        "win_rate": 0.988,
+        "allocation_entropy": 0.7197667577483821,
+        "mean_concentration": 0.3115999999999987
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.2337999999999993,
+        "win_rate": 0.972,
+        "allocation_entropy": 1.3044425059490912,
+        "mean_concentration": 0.33639999999999926
+      }
+    },
+    {
+      "seed": 8,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.18679999999999997,
+        "win_rate": 0.004,
+        "allocation_entropy": 0.8326570035978093,
+        "mean_concentration": 0.30159999999999854
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.17659999999999945,
+        "win_rate": 0.984,
+        "allocation_entropy": 0.7353193068593934,
+        "mean_concentration": 0.30759999999999865
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.19879999999999945,
+        "win_rate": 0.964,
+        "allocation_entropy": 1.0925459469609993,
+        "mean_concentration": 0.32119999999999893
+      }
+    },
+    {
+      "seed": 9,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.18599999999999972,
+        "win_rate": 0.008,
+        "allocation_entropy": 0.8774779286235161,
+        "mean_concentration": 0.30199999999999866
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.19819999999999927,
+        "win_rate": 0.996,
+        "allocation_entropy": 0.5091961605943,
+        "mean_concentration": 0.31039999999999857
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.2309999999999992,
+        "win_rate": 0.984,
+        "allocation_entropy": 1.0832935837133797,
+        "mean_concentration": 0.32799999999999924
+      }
+    },
+    {
+      "seed": 10,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.17619999999999972,
+        "win_rate": 0.008,
+        "allocation_entropy": 0.7624964451740721,
+        "mean_concentration": 0.3015999999999986
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.19259999999999927,
+        "win_rate": 0.988,
+        "allocation_entropy": 0.574042212508109,
+        "mean_concentration": 0.3063999999999986
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.2023999999999997,
+        "win_rate": 0.96,
+        "allocation_entropy": 1.2028591825280572,
+        "mean_concentration": 0.32159999999999855
+      }
+    },
+    {
+      "seed": 11,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.20359999999999992,
+        "win_rate": 0.0,
+        "allocation_entropy": 0.8102605567120895,
+        "mean_concentration": 0.3015999999999986
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.22619999999999904,
+        "win_rate": 0.988,
+        "allocation_entropy": 0.8260425291768655,
+        "mean_concentration": 0.3295999999999988
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.24619999999999917,
+        "win_rate": 0.984,
+        "allocation_entropy": 1.1449272389544103,
+        "mean_concentration": 0.33879999999999905
+      }
+    },
+    {
+      "seed": 12,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.1781999999999996,
+        "win_rate": 0.004,
+        "allocation_entropy": 0.8325729931814877,
+        "mean_concentration": 0.3019999999999986
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.18399999999999936,
+        "win_rate": 0.992,
+        "allocation_entropy": 0.46917421990155433,
+        "mean_concentration": 0.3023999999999987
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.20359999999999953,
+        "win_rate": 0.964,
+        "allocation_entropy": 1.2678879635783398,
+        "mean_concentration": 0.3255999999999988
+      }
+    },
+    {
+      "seed": 13,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.1865999999999998,
+        "win_rate": 0.0,
+        "allocation_entropy": 0.80471537926761,
+        "mean_concentration": 0.30079999999999857
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.20859999999999926,
+        "win_rate": 0.996,
+        "allocation_entropy": 0.6509926858576554,
+        "mean_concentration": 0.31239999999999846
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.23679999999999932,
+        "win_rate": 0.98,
+        "allocation_entropy": 1.13998935986933,
+        "mean_concentration": 0.32919999999999955
+      }
+    },
+    {
+      "seed": 14,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.16059999999999988,
+        "win_rate": 0.008,
+        "allocation_entropy": 0.7761130158682302,
+        "mean_concentration": 0.3015999999999986
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.18079999999999943,
+        "win_rate": 0.972,
+        "allocation_entropy": 0.6800424549621349,
+        "mean_concentration": 0.30559999999999865
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.18399999999999975,
+        "win_rate": 0.936,
+        "allocation_entropy": 1.3431456001299262,
+        "mean_concentration": 0.32239999999999924
+      }
+    },
+    {
+      "seed": 15,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.1849999999999999,
+        "win_rate": 0.0,
+        "allocation_entropy": 0.8004164665380841,
+        "mean_concentration": 0.30199999999999866
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.1837999999999994,
+        "win_rate": 0.988,
+        "allocation_entropy": 0.7076461021566797,
+        "mean_concentration": 0.30999999999999867
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.19559999999999952,
+        "win_rate": 0.96,
+        "allocation_entropy": 1.2778768791737183,
+        "mean_concentration": 0.328399999999999
+      }
+    },
+    {
+      "seed": 16,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.20059999999999983,
+        "win_rate": 0.004,
+        "allocation_entropy": 0.7748884453343603,
+        "mean_concentration": 0.3007999999999986
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.20059999999999917,
+        "win_rate": 0.996,
+        "allocation_entropy": 0.44223361231114644,
+        "mean_concentration": 0.30799999999999883
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.22759999999999914,
+        "win_rate": 0.984,
+        "allocation_entropy": 1.021136261640451,
+        "mean_concentration": 0.32719999999999927
+      }
+    },
+    {
+      "seed": 17,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.19359999999999974,
+        "win_rate": 0.004,
+        "allocation_entropy": 0.8169460361120308,
+        "mean_concentration": 0.3015999999999986
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.17719999999999944,
+        "win_rate": 0.972,
+        "allocation_entropy": 0.7060445998658517,
+        "mean_concentration": 0.30519999999999864
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.21339999999999915,
+        "win_rate": 0.972,
+        "allocation_entropy": 1.1381548797956527,
+        "mean_concentration": 0.3243999999999987
+      }
+    },
+    {
+      "seed": 18,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.1769999999999999,
+        "win_rate": 0.012,
+        "allocation_entropy": 0.8305882650186482,
+        "mean_concentration": 0.30079999999999857
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.1833999999999993,
+        "win_rate": 0.992,
+        "allocation_entropy": 0.5924695059574666,
+        "mean_concentration": 0.30399999999999855
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.21679999999999935,
+        "win_rate": 0.988,
+        "allocation_entropy": 1.186695552660077,
+        "mean_concentration": 0.3219999999999989
+      }
+    },
+    {
+      "seed": 19,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.18099999999999974,
+        "win_rate": 0.0,
+        "allocation_entropy": 0.771493807487973,
+        "mean_concentration": 0.3011999999999986
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.17459999999999937,
+        "win_rate": 0.972,
+        "allocation_entropy": 0.6671682394261549,
+        "mean_concentration": 0.30079999999999857
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.20799999999999946,
+        "win_rate": 0.956,
+        "allocation_entropy": 1.2156063862416997,
+        "mean_concentration": 0.321999999999999
+      }
+    },
+    {
+      "seed": 20,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.2053999999999997,
+        "win_rate": 0.0,
+        "allocation_entropy": 0.7897954963415558,
+        "mean_concentration": 0.30079999999999857
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.1927999999999991,
+        "win_rate": 0.996,
+        "allocation_entropy": 0.3393345654371751,
+        "mean_concentration": 0.30679999999999863
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.24439999999999915,
+        "win_rate": 0.996,
+        "allocation_entropy": 1.0214233980169385,
+        "mean_concentration": 0.33319999999999933
+      }
+    },
+    {
+      "seed": 21,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.18859999999999966,
+        "win_rate": 0.004,
+        "allocation_entropy": 0.8336313265852298,
+        "mean_concentration": 0.30119999999999864
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.1899999999999992,
+        "win_rate": 0.996,
+        "allocation_entropy": 0.5083186874774134,
+        "mean_concentration": 0.30119999999999864
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.22279999999999908,
+        "win_rate": 0.996,
+        "allocation_entropy": 0.8915043405505436,
+        "mean_concentration": 0.3175999999999988
+      }
+    },
+    {
+      "seed": 22,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.19259999999999985,
+        "win_rate": 0.016,
+        "allocation_entropy": 0.8048793375643684,
+        "mean_concentration": 0.30079999999999857
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.18119999999999928,
+        "win_rate": 0.932,
+        "allocation_entropy": 0.9352786941391634,
+        "mean_concentration": 0.3155999999999986
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.22159999999999952,
+        "win_rate": 0.98,
+        "allocation_entropy": 1.279748565290298,
+        "mean_concentration": 0.33159999999999945
+      }
+    },
+    {
+      "seed": 23,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.19519999999999985,
+        "win_rate": 0.004,
+        "allocation_entropy": 0.7799131025431291,
+        "mean_concentration": 0.3003999999999986
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.18059999999999934,
+        "win_rate": 0.984,
+        "allocation_entropy": 0.7186350546074622,
+        "mean_concentration": 0.3079999999999987
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.22959999999999908,
+        "win_rate": 0.976,
+        "allocation_entropy": 1.2357829486360805,
+        "mean_concentration": 0.3339999999999987
+      }
+    },
+    {
+      "seed": 24,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.19519999999999965,
+        "win_rate": 0.004,
+        "allocation_entropy": 0.8130571727434897,
+        "mean_concentration": 0.3019999999999986
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.18879999999999933,
+        "win_rate": 0.996,
+        "allocation_entropy": 0.6456906587437352,
+        "mean_concentration": 0.30919999999999875
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.1947999999999994,
+        "win_rate": 0.984,
+        "allocation_entropy": 1.118436051671568,
+        "mean_concentration": 0.32279999999999887
+      }
+    },
+    {
+      "seed": 25,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.19959999999999956,
+        "win_rate": 0.0,
+        "allocation_entropy": 0.7806938140478394,
+        "mean_concentration": 0.3007999999999986
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.19439999999999916,
+        "win_rate": 0.996,
+        "allocation_entropy": 0.4037028231673459,
+        "mean_concentration": 0.30879999999999863
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.2511999999999993,
+        "win_rate": 0.988,
+        "allocation_entropy": 1.251497373827629,
+        "mean_concentration": 0.3403999999999988
+      }
+    },
+    {
+      "seed": 26,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.2043999999999997,
+        "win_rate": 0.004,
+        "allocation_entropy": 0.8562660948250432,
+        "mean_concentration": 0.3019999999999987
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.20539999999999906,
+        "win_rate": 0.992,
+        "allocation_entropy": 0.7316726566658664,
+        "mean_concentration": 0.3191999999999988
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.2625999999999992,
+        "win_rate": 0.988,
+        "allocation_entropy": 1.1594849392680038,
+        "mean_concentration": 0.3435999999999994
+      }
+    },
+    {
+      "seed": 27,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.17899999999999983,
+        "win_rate": 0.0,
+        "allocation_entropy": 0.8475343918101981,
+        "mean_concentration": 0.30159999999999865
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.19359999999999927,
+        "win_rate": 0.984,
+        "allocation_entropy": 0.5347918281319014,
+        "mean_concentration": 0.3055999999999986
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.20939999999999934,
+        "win_rate": 0.976,
+        "allocation_entropy": 1.1614900819231793,
+        "mean_concentration": 0.3227999999999991
+      }
+    },
+    {
+      "seed": 28,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.19759999999999991,
+        "win_rate": 0.0,
+        "allocation_entropy": 0.7719169682622565,
+        "mean_concentration": 0.3011999999999986
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.17879999999999935,
+        "win_rate": 0.992,
+        "allocation_entropy": 0.5890148552823838,
+        "mean_concentration": 0.3043999999999986
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.24199999999999935,
+        "win_rate": 0.996,
+        "allocation_entropy": 1.1921497816758522,
+        "mean_concentration": 0.33599999999999974
+      }
+    },
+    {
+      "seed": 29,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.17679999999999965,
+        "win_rate": 0.008,
+        "allocation_entropy": 0.8536713965412106,
+        "mean_concentration": 0.3011999999999986
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.18919999999999923,
+        "win_rate": 1.0,
+        "allocation_entropy": 0.588467635286432,
+        "mean_concentration": 0.3035999999999986
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.22179999999999928,
+        "win_rate": 0.992,
+        "allocation_entropy": 1.2126047642559539,
+        "mean_concentration": 0.32439999999999886
+      }
+    },
+    {
+      "seed": 30,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.20359999999999961,
+        "win_rate": 0.004,
+        "allocation_entropy": 0.8230652212142534,
+        "mean_concentration": 0.30159999999999865
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.21799999999999914,
+        "win_rate": 0.996,
+        "allocation_entropy": 0.6803070304007375,
+        "mean_concentration": 0.31999999999999856
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.2543999999999994,
+        "win_rate": 0.972,
+        "allocation_entropy": 1.2185647513478608,
+        "mean_concentration": 0.3411999999999992
+      }
+    },
+    {
+      "seed": 31,
+      "baseline": {
+        "agent": "baseline",
+        "rounds": 250,
+        "mean_payoff": -0.19859999999999978,
+        "win_rate": 0.008,
+        "allocation_entropy": 0.8356937359775743,
+        "mean_concentration": 0.3031999999999987
+      },
+      "control_shuffled_history": {
+        "agent": "control_shuffled_history",
+        "rounds": 250,
+        "mean_payoff": 0.2091999999999991,
+        "win_rate": 0.992,
+        "allocation_entropy": 0.8294040210978773,
+        "mean_concentration": 0.32359999999999867
+      },
+      "control": {
+        "agent": "control",
+        "rounds": 250,
+        "mean_payoff": 0.2469999999999991,
+        "win_rate": 0.992,
+        "allocation_entropy": 1.1756908571612668,
+        "mean_concentration": 0.33839999999999915
+      }
+    }
+  ],
+  "claim_scope": "paired replay temporal-information falsification; not closed-loop construct recovery"
+}

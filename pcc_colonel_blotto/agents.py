@@ -119,3 +119,21 @@ class AdaptiveCounterOpponent:
         means = [sum(a[i] for a in hist) / len(hist) for i in range(game.battlefields)]
         weights = [game.values[i] * (1.0 + means[i]) for i in range(game.battlefields)]
         return _weighted_integer_allocation(game.troops, weights)
+
+@dataclass
+class ShuffledHistoryControl:
+    """Control ablation that preserves observed allocations but destroys their order.
+
+    On every decision, the complete observed opponent history is permuted before it
+    is passed to the ordinary Control policy.  This preserves the history multiset
+    exactly at each round while breaking recency/ordering information.
+    """
+    name: str = "control_shuffled_history"
+    lookback: int = 8
+
+    def act(self, game: BlottoGame, opponent_history: list[Allocation], rng: random.Random) -> Allocation:
+        if not opponent_history:
+            return ControlAgent(lookback=self.lookback).act(game, [], rng)
+        shuffled = list(opponent_history)
+        rng.shuffle(shuffled)
+        return ControlAgent(lookback=self.lookback).act(game, shuffled, rng)

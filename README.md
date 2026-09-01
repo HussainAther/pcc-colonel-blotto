@@ -40,3 +40,25 @@ The probe compares Baseline, Pressure, Control, and Chaos policies against a sta
 ## Claim discipline
 
 v0.1 is an engineering/mechanism probe only. It does **not** claim construct recovery, universal PCC topology, or human behavioral validity.
+
+## v0.2 Control history-destruction falsification
+
+The first follow-up falsification asks whether the Control policy's advantage depends on **ordered/recency-sensitive opponent history** or mostly on marginal allocation statistics. A paired replay gives Baseline, shuffled-history Control, and true-history Control the exact same realized opponent allocation sequence.
+
+Default 32-seed result:
+
+- Baseline mean payoff: **-0.1900**
+- Shuffled-history Control: **+0.1923**
+- True-history Control: **+0.2250**
+- Control gain eliminated by shuffling: **7.9%**
+- Prespecified 50% collapse criterion: **FAIL**
+
+Interpretation: the current Control implementation is genuinely history-responsive, but most of its advantage in this environment is carried by **distributional opponent statistics rather than temporal order/recency**. We therefore do **not** claim a sequential-Control mechanism from this result.
+
+Run it with:
+
+```bash
+python -m pcc_colonel_blotto control-history-destruction --output-dir validation
+```
+
+See `docs/CONTROL_HISTORY_DESTRUCTION_PROTOCOL.md` and `validation/CONTROL_HISTORY_DESTRUCTION.md`.

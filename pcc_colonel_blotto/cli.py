@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from .experiment import write_probe
+from .experiment import write_control_history_destruction, write_probe
 
 
 def main() -> None:
@@ -12,9 +12,23 @@ def main() -> None:
     probe.add_argument("--output-dir", default="validation")
     probe.add_argument("--rounds", type=int, default=250)
     probe.add_argument("--seeds", type=int, default=8)
+    history = sub.add_parser("control-history-destruction", help="run the paired temporal-order falsification for Control")
+    history.add_argument("--output-dir", default="validation")
+    history.add_argument("--rounds", type=int, default=250)
+    history.add_argument("--seeds", type=int, default=32)
     args = parser.parse_args()
     if args.command == "mechanism-probe":
         result = write_probe(args.output_dir, rounds=args.rounds, seeds=args.seeds)
+        for name, item in result["prespecified_checks"].items():
+            print(f"{name}: {'PASS' if item['pass'] else 'FAIL'}")
+    elif args.command == "control-history-destruction":
+        result = write_control_history_destruction(args.output_dir, rounds=args.rounds, seeds=args.seeds)
+        a = result["aggregate"]
+        print(f"baseline mean payoff: {a['baseline_mean_payoff']:.6f}")
+        print(f"shuffled Control mean payoff: {a['shuffled_control_mean_payoff']:.6f}")
+        print(f"true Control mean payoff: {a['true_control_mean_payoff']:.6f}")
+        frac = a['fraction_control_gain_eliminated_after_shuffle']
+        print(f"fraction Control gain eliminated: {frac:.3%}" if frac is not None else "fraction Control gain eliminated: undefined")
         for name, item in result["prespecified_checks"].items():
             print(f"{name}: {'PASS' if item['pass'] else 'FAIL'}")
 
