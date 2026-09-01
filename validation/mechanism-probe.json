@@ -1,0 +1,139 @@
+{
+  "schema": "pcc-colonel-blotto-mechanism-probe-v0.1",
+  "game": {
+    "troops": 10,
+    "values": [
+      1.0,
+      1.5,
+      2.0,
+      2.5,
+      3.0
+    ],
+    "battlefields": 5
+  },
+  "design": {
+    "rounds_per_seed": 250,
+    "seeds": 8,
+    "opponents": [
+      "static_weighted",
+      "adaptive_counter"
+    ]
+  },
+  "results": [
+    {
+      "agent": "baseline",
+      "opponent": "static_weighted",
+      "rounds_per_seed": 250,
+      "seeds": 8,
+      "mean_payoff": 0.002375,
+      "win_rate": 0.339,
+      "allocation_entropy": 0.8392893603142485,
+      "mean_concentration": 0.30169999999999997,
+      "mean_opponent_viable_responses": 223.3605
+    },
+    {
+      "agent": "baseline",
+      "opponent": "adaptive_counter",
+      "rounds_per_seed": 250,
+      "seeds": 8,
+      "mean_payoff": -0.191575,
+      "win_rate": 0.006,
+      "allocation_entropy": 0.8392893603142485,
+      "mean_concentration": 0.30169999999999997,
+      "mean_opponent_viable_responses": 223.3605
+    },
+    {
+      "agent": "pressure",
+      "opponent": "static_weighted",
+      "rounds_per_seed": 250,
+      "seeds": 8,
+      "mean_payoff": 0.15215,
+      "win_rate": 0.884,
+      "allocation_entropy": 0.0,
+      "mean_concentration": 0.4,
+      "mean_opponent_viable_responses": 193.0
+    },
+    {
+      "agent": "pressure",
+      "opponent": "adaptive_counter",
+      "rounds_per_seed": 250,
+      "seeds": 8,
+      "mean_payoff": 0.000775,
+      "win_rate": 0.004,
+      "allocation_entropy": 0.0,
+      "mean_concentration": 0.4,
+      "mean_opponent_viable_responses": 193.0
+    },
+    {
+      "agent": "control",
+      "opponent": "static_weighted",
+      "rounds_per_seed": 250,
+      "seeds": 8,
+      "mean_payoff": 0.201825,
+      "win_rate": 0.9380000000000001,
+      "allocation_entropy": 1.6962224489530506,
+      "mean_concentration": 0.35945,
+      "mean_opponent_viable_responses": 216.214
+    },
+    {
+      "agent": "control",
+      "opponent": "adaptive_counter",
+      "rounds_per_seed": 250,
+      "seeds": 8,
+      "mean_payoff": 0.0115,
+      "win_rate": 0.4635,
+      "allocation_entropy": 2.3117486275942913,
+      "mean_concentration": 0.3486,
+      "mean_opponent_viable_responses": 273.02750000000003
+    },
+    {
+      "agent": "chaos",
+      "opponent": "static_weighted",
+      "rounds_per_seed": 250,
+      "seeds": 8,
+      "mean_payoff": 0.11597500000000001,
+      "win_rate": 0.736,
+      "allocation_entropy": 4.694720674010743,
+      "mean_concentration": 0.42225,
+      "mean_opponent_viable_responses": 344.41700000000003
+    },
+    {
+      "agent": "chaos",
+      "opponent": "adaptive_counter",
+      "rounds_per_seed": 250,
+      "seeds": 8,
+      "mean_payoff": 0.05275,
+      "win_rate": 0.593,
+      "allocation_entropy": 4.841666085577415,
+      "mean_concentration": 0.4446,
+      "mean_opponent_viable_responses": 387.227
+    }
+  ],
+  "prespecified_checks": {
+    "pressure_more_concentrated_than_baseline": {
+      "pass": true,
+      "pressure": 0.4,
+      "baseline": 0.30169999999999997
+    },
+    "pressure_constricts_viable_responses": {
+      "pass": true,
+      "pressure": 193.0,
+      "baseline": 223.3605
+    },
+    "chaos_more_allocation_entropy_than_baseline": {
+      "pass": true,
+      "chaos": 4.768193379794079,
+      "baseline": 0.8392893603142485
+    },
+    "chaos_value_guardrail_vs_baseline": {
+      "pass": true,
+      "minimum_payoff_advantage": 0.1136
+    },
+    "control_beats_baseline_vs_adaptive": {
+      "pass": true,
+      "control": 0.0115,
+      "baseline": -0.191575
+    }
+  },
+  "claim_scope": "mechanism probe only; not construct recovery"
+}

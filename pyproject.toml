@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pcc-colonel-blotto"
+version = "0.1.0"
+description = "Repeated Colonel Blotto falsification environment for Pressure-Control-Chaos research"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+pcc-blotto = "pcc_colonel_blotto.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["pcc_colonel_blotto*"]
