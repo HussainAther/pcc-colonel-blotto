@@ -755,7 +755,6 @@ def _match_pressure_pairs(game: BlottoGame) -> tuple[list[dict], dict]:
         a: _expected_payoff_against_trace(game, a, reference)
         for a in universe
     }
-    viable = {a: game.viable_responses(a) for a in universe}
     low = [a for a in universe if concentration(a) <= PRESSURE_LOW_MAX_CONCENTRATION]
     high = [a for a in universe if concentration(a) >= PRESSURE_HIGH_MIN_CONCENTRATION]
     available_low = set(low)
@@ -781,10 +780,18 @@ def _match_pressure_pairs(game: BlottoGame) -> tuple[list[dict], dict]:
             "low_expected_payoff": expected_value[low_action],
             "high_expected_payoff": expected_value[high_action],
             "absolute_value_gap": abs(expected_value[high_action] - expected_value[low_action]),
-            "low_viable_responses": viable[low_action],
-            "high_viable_responses": viable[high_action],
-            "viable_response_delta_high_minus_low": viable[high_action] - viable[low_action],
+            "low_viable_responses": None,
+            "high_viable_responses": None,
+            "viable_response_delta_high_minus_low": None,
         })
+    for p in pairs:
+        low_action = tuple(p["low_allocation"])
+        high_action = tuple(p["high_allocation"])
+        low_viable = game.viable_responses(low_action)
+        high_viable = game.viable_responses(high_action)
+        p["low_viable_responses"] = low_viable
+        p["high_viable_responses"] = high_viable
+        p["viable_response_delta_high_minus_low"] = high_viable - low_viable
     meta = {
         "legal_allocations": len(universe),
         "reference_samples": len(reference),
@@ -890,4 +897,174 @@ def write_pressure_matched_intervention(output_dir: str | Path) -> dict:
         "This isolates **raw allocation concentration**, not the full engineered Pressure policy. If the primary prediction fails, concentration by itself should not be treated as a substrate-general Pressure mechanism; battlefield targeting, leverage, or value-weighted commitment may be necessary parts of the construct.",
     ]
     (out / "PRESSURE_MATCHED_INTERVENTION.md").write_text("\n".join(lines) + "\n")
+    return result
+
+PRESSURE_LEVERAGE_LOW_MAX = 0.40
+PRESSURE_LEVERAGE_HIGH_MIN = 0.60
+PRESSURE_LEVERAGE_CONCENTRATION_TOLERANCE = 0.05
+PRESSURE_LEVERAGE_MIN_RELATIVE_CONSTRICTION = 0.10
+
+
+def leverage_targeting(game: BlottoGame, allocation: Allocation) -> float:
+    """Troop-mass targeting toward high-value battlefields, scaled to [0, 1]."""
+    lo, hi = min(game.values), max(game.values)
+    if hi == lo:
+        return 0.0
+    normalized = [(v - lo) / (hi - lo) for v in game.values]
+    return sum(x * w for x, w in zip(allocation, normalized)) / game.troops
+
+
+def _match_pressure_leverage_pairs(game: BlottoGame) -> tuple[list[dict], dict]:
+    """Match low/high leverage-targeting actions on payoff and concentration."""
+    universe = compositions(game.troops, game.battlefields)
+    reference = _pressure_reference_trace(game)
+    expected_value = {a: _expected_payoff_against_trace(game, a, reference) for a in universe}
+    leverage = {a: leverage_targeting(game, a) for a in universe}
+    conc = {a: concentration(a) for a in universe}
+    low = [a for a in universe if leverage[a] <= PRESSURE_LEVERAGE_LOW_MAX]
+    high = [a for a in universe if leverage[a] >= PRESSURE_LEVERAGE_HIGH_MIN]
+    available_low = set(low)
+    pairs: list[dict] = []
+    for high_action in sorted(high, key=lambda a: (expected_value[a], conc[a], a)):
+        candidates = [
+            a for a in available_low
+            if abs(expected_value[a] - expected_value[high_action]) <= PRESSURE_VALUE_TOLERANCE
+            and abs(conc[a] - conc[high_action]) <= PRESSURE_LEVERAGE_CONCENTRATION_TOLERANCE
+        ]
+        if not candidates:
+            continue
+        low_action = min(
+            candidates,
+            key=lambda a: (
+                abs(expected_value[a] - expected_value[high_action]),
+                abs(conc[a] - conc[high_action]),
+                a,
+            ),
+        )
+        available_low.remove(low_action)
+        pairs.append({
+            "low_leverage_allocation": list(low_action),
+            "high_leverage_allocation": list(high_action),
+            "low_leverage": leverage[low_action],
+            "high_leverage": leverage[high_action],
+            "leverage_delta": leverage[high_action] - leverage[low_action],
+            "low_concentration": conc[low_action],
+            "high_concentration": conc[high_action],
+            "absolute_concentration_gap": abs(conc[high_action] - conc[low_action]),
+            "low_expected_payoff": expected_value[low_action],
+            "high_expected_payoff": expected_value[high_action],
+            "absolute_value_gap": abs(expected_value[high_action] - expected_value[low_action]),
+            "low_viable_responses": None,
+            "high_viable_responses": None,
+            "viable_response_delta_high_minus_low": None,
+        })
+    for p in pairs:
+        low_action = tuple(p["low_leverage_allocation"])
+        high_action = tuple(p["high_leverage_allocation"])
+        low_viable = game.viable_responses(low_action)
+        high_viable = game.viable_responses(high_action)
+        p["low_viable_responses"] = low_viable
+        p["high_viable_responses"] = high_viable
+        p["viable_response_delta_high_minus_low"] = high_viable - low_viable
+    return pairs, {
+        "legal_allocations": len(universe),
+        "reference_samples": len(reference),
+        "low_leverage_candidates": len(low),
+        "high_leverage_candidates": len(high),
+    }
+
+
+def run_pressure_leverage_intervention() -> dict:
+    """v0.6 causal probe: manipulate targeting leverage while matching value/concentration."""
+    game = BlottoGame()
+    pairs, meta = _match_pressure_leverage_pairs(game)
+    if not pairs:
+        raise RuntimeError("pressure leverage matching produced no pairs")
+    n = len(pairs)
+    mean = lambda key: sum(p[key] for p in pairs) / n
+    low_viable = mean("low_viable_responses")
+    high_viable = mean("high_viable_responses")
+    relative_reduction = (low_viable - high_viable) / low_viable if low_viable else None
+    pairwise_reduction_rate = sum(p["high_viable_responses"] < p["low_viable_responses"] for p in pairs) / n
+    max_value_gap = max(p["absolute_value_gap"] for p in pairs)
+    max_conc_gap = max(p["absolute_concentration_gap"] for p in pairs)
+    return {
+        "schema": "pcc-colonel-blotto-pressure-leverage-intervention-v0.6",
+        "game": {"troops": game.troops, "values": list(game.values), "battlefields": game.battlefields},
+        "design": {
+            **meta,
+            "reference_distribution": "StaticWeightedOpponent sampled with frozen v0.5 seed; independent of evaluated allocations",
+            "reference_seed": PRESSURE_MATCH_SEED,
+            "low_leverage_max": PRESSURE_LEVERAGE_LOW_MAX,
+            "high_leverage_min": PRESSURE_LEVERAGE_HIGH_MIN,
+            "strategic_value_match_tolerance": PRESSURE_VALUE_TOLERANCE,
+            "concentration_match_tolerance": PRESSURE_LEVERAGE_CONCENTRATION_TOLERANCE,
+            "leverage_definition": "troop-weighted normalized battlefield value: min-value field=0, max-value field=1",
+            "matching": "deterministic nearest expected-payoff then concentration match without replacement",
+            "primary_prediction": "high-leverage targeting reduces mean opponent viable responses by at least 10%",
+            "primary_threshold": PRESSURE_LEVERAGE_MIN_RELATIVE_CONSTRICTION,
+        },
+        "aggregate": {
+            "matched_pairs": n,
+            "mean_low_expected_payoff": mean("low_expected_payoff"),
+            "mean_high_expected_payoff": mean("high_expected_payoff"),
+            "mean_absolute_value_gap": mean("absolute_value_gap"),
+            "max_absolute_value_gap": max_value_gap,
+            "mean_low_concentration": mean("low_concentration"),
+            "mean_high_concentration": mean("high_concentration"),
+            "mean_absolute_concentration_gap": mean("absolute_concentration_gap"),
+            "max_absolute_concentration_gap": max_conc_gap,
+            "mean_low_leverage": mean("low_leverage"),
+            "mean_high_leverage": mean("high_leverage"),
+            "mean_leverage_delta": mean("leverage_delta"),
+            "mean_low_viable_responses": low_viable,
+            "mean_high_viable_responses": high_viable,
+            "relative_viable_response_reduction": relative_reduction,
+            "pairwise_reduction_rate": pairwise_reduction_rate,
+        },
+        "prespecified_checks": {
+            "exact_troop_budget_preserved": {"pass": all(sum(p["low_leverage_allocation"]) == game.troops and sum(p["high_leverage_allocation"]) == game.troops for p in pairs)},
+            "strategic_value_matched_within_tolerance": {"pass": max_value_gap <= PRESSURE_VALUE_TOLERANCE + 1e-12, "max_gap": max_value_gap, "tolerance": PRESSURE_VALUE_TOLERANCE},
+            "concentration_matched_within_tolerance": {"pass": max_conc_gap <= PRESSURE_LEVERAGE_CONCENTRATION_TOLERANCE + 1e-12, "max_gap": max_conc_gap, "tolerance": PRESSURE_LEVERAGE_CONCENTRATION_TOLERANCE},
+            "leverage_targeting_manipulation_succeeded": {"pass": mean("high_leverage") > mean("low_leverage"), "delta": mean("high_leverage") - mean("low_leverage")},
+            "targeted_pressure_constricts_viable_responses_by_at_least_10_percent": {"pass": bool(relative_reduction is not None and relative_reduction >= PRESSURE_LEVERAGE_MIN_RELATIVE_CONSTRICTION), "relative_reduction": relative_reduction, "threshold": PRESSURE_LEVERAGE_MIN_RELATIVE_CONSTRICTION},
+        },
+        "pairs": pairs,
+        "claim_scope": "matched synthetic causal probe of value-targeted commitment; not a substrate-general Pressure construct claim",
+    }
+
+
+def write_pressure_leverage_intervention(output_dir: str | Path) -> dict:
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    result = run_pressure_leverage_intervention()
+    (out / "pressure-leverage-intervention.json").write_text(json.dumps(result, indent=2) + "\n")
+    a = result["aggregate"]
+    lines = [
+        "# PCC Colonel Blotto v0.6 Targeted-Leverage Pressure Intervention",
+        "",
+        "This experiment holds troop budget exactly fixed and approximately matches both expected strategic value and raw allocation concentration while manipulating **where troop mass is targeted** across battlefield values.",
+        "",
+        "## Prespecified checks",
+        "",
+    ]
+    for name, item in result["prespecified_checks"].items():
+        lines.append(f"- **{name}**: {'PASS' if item['pass'] else 'FAIL'}")
+    lines += [
+        "",
+        "## Aggregate result",
+        "",
+        f"- Matched pairs: **{a['matched_pairs']}**",
+        f"- Mean absolute strategic-value gap: **{a['mean_absolute_value_gap']:.6f}**",
+        f"- Mean concentration: **{a['mean_low_concentration']:.4f} -> {a['mean_high_concentration']:.4f}**",
+        f"- Mean leverage targeting: **{a['mean_low_leverage']:.4f} -> {a['mean_high_leverage']:.4f}**",
+        f"- Mean viable responses: **{a['mean_low_viable_responses']:.2f} -> {a['mean_high_viable_responses']:.2f}**",
+        f"- Relative viable-response reduction: **{a['relative_viable_response_reduction']:.2%}**",
+        f"- Pairwise fraction with fewer viable responses under high leverage: **{a['pairwise_reduction_rate']:.2%}**",
+        "",
+        "## Interpretation guardrail",
+        "",
+        "A positive result supports **value-targeted commitment** as a candidate Blotto Pressure mechanism after raw concentration failed in v0.5. It does not establish that battlefield value is the only relevant form of leverage, nor that the result generalizes beyond this Blotto parameterization.",
+    ]
+    (out / "PRESSURE_LEVERAGE_INTERVENTION.md").write_text("\n".join(lines) + "\n")
     return result

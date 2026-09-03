@@ -1,3 +1,14 @@
+# Changelog
+
+## 0.6.0 - Targeted-leverage Pressure intervention
+
+- Added a prospective matched intervention separating raw concentration from value-targeted commitment.
+- Matched exact troop budget, expected strategic value (<=0.01 gap), and concentration (<=0.05 gap).
+- Added leverage-targeting metric, CLI command, protocol, frozen validation output, and tests.
+- Frozen result: 50 matched pairs; leverage 0.3450 -> 0.6430 at identical mean concentration 0.5020; viable responses 741.02 -> 385.24 (48.01% reduction).
+- Prespecified >=10% response-constriction criterion: PASS.
+- Interpretation remains mechanism-level: value-targeted commitment is a candidate Blotto Pressure mechanism.
+
 ## 0.5.0 - Pressure matched-concentration intervention
 
 - Added a deterministic matched causal probe of raw allocation concentration.

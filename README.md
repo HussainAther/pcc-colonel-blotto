@@ -144,3 +144,26 @@ Frozen result:
 The direction reverses the raw-concentration prediction: when strategic value is approximately matched, higher concentration leaves the opponent with **more**, not fewer, non-losing pure responses on average. Therefore raw concentration alone is not promoted as the Blotto Pressure mechanism. The earlier engineered `PressureAgent` result may depend on *where* resources are concentrated (battlefield value/leverage), not merely how concentrated the allocation is.
 
 See `docs/PRESSURE_MATCHED_INTERVENTION_PROTOCOL.md` and `validation/PRESSURE_MATCHED_INTERVENTION.md`.
+
+## v0.6 Targeted-leverage Pressure intervention
+
+v0.6 follows the v0.5 failure by separating **raw concentration** from **where concentrated commitment is targeted**. Low- and high-leverage allocations are matched on exact troop budget, expected strategic value (`<= 0.01` gap), and raw concentration (`<= 0.05` gap). The manipulation is troop-weighted targeting toward higher-value battlefields.
+
+Run it with:
+
+```bash
+python -m pcc_colonel_blotto pressure-leverage-intervention --output-dir validation
+```
+
+Frozen result:
+
+- matched pairs: **50**
+- mean leverage targeting: **0.3450 -> 0.6430**
+- mean concentration: **0.5020 -> 0.5020**
+- mean viable responses: **741.02 -> 385.24**
+- relative viable-response reduction: **48.01%**
+- prespecified `>=10%` constriction criterion: **PASS**
+
+This sharply distinguishes v0.6 from v0.5: concentration alone increased viable responses, whereas **value-targeted commitment at matched concentration and strategic value strongly constricts the response set**. This promotes value-targeted commitment as a candidate Blotto Pressure mechanism, not yet as a substrate-general construct claim.
+
+See `docs/PRESSURE_LEVERAGE_INTERVENTION_PROTOCOL.md` and `validation/PRESSURE_LEVERAGE_INTERVENTION.md`.

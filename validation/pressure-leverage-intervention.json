@@ -1,0 +1,1475 @@
+{
+  "schema": "pcc-colonel-blotto-pressure-leverage-intervention-v0.6",
+  "game": {
+    "troops": 10,
+    "values": [
+      1.0,
+      1.5,
+      2.0,
+      2.5,
+      3.0
+    ],
+    "battlefields": 5
+  },
+  "design": {
+    "legal_allocations": 1001,
+    "reference_samples": 2048,
+    "low_leverage_candidates": 318,
+    "high_leverage_candidates": 318,
+    "reference_distribution": "StaticWeightedOpponent sampled with frozen v0.5 seed; independent of evaluated allocations",
+    "reference_seed": 20260903,
+    "low_leverage_max": 0.4,
+    "high_leverage_min": 0.6,
+    "strategic_value_match_tolerance": 0.01,
+    "concentration_match_tolerance": 0.05,
+    "leverage_definition": "troop-weighted normalized battlefield value: min-value field=0, max-value field=1",
+    "matching": "deterministic nearest expected-payoff then concentration match without replacement",
+    "primary_prediction": "high-leverage targeting reduces mean opponent viable responses by at least 10%",
+    "primary_threshold": 0.1
+  },
+  "aggregate": {
+    "matched_pairs": 50,
+    "mean_low_expected_payoff": -0.19999609375,
+    "mean_high_expected_payoff": -0.2010498046875,
+    "mean_absolute_value_gap": 0.0042216796875,
+    "max_absolute_value_gap": 0.009838867187500017,
+    "mean_low_concentration": 0.502,
+    "mean_high_concentration": 0.502,
+    "mean_absolute_concentration_gap": 0.0,
+    "max_absolute_concentration_gap": 0.0,
+    "mean_low_leverage": 0.345,
+    "mean_high_leverage": 0.643,
+    "mean_leverage_delta": 0.298,
+    "mean_low_viable_responses": 741.02,
+    "mean_high_viable_responses": 385.24,
+    "relative_viable_response_reduction": 0.48012199400825883,
+    "pairwise_reduction_rate": 1.0
+  },
+  "prespecified_checks": {
+    "exact_troop_budget_preserved": {
+      "pass": true
+    },
+    "strategic_value_matched_within_tolerance": {
+      "pass": true,
+      "max_gap": 0.009838867187500017,
+      "tolerance": 0.01
+    },
+    "concentration_matched_within_tolerance": {
+      "pass": true,
+      "max_gap": 0.0,
+      "tolerance": 0.05
+    },
+    "leverage_targeting_manipulation_succeeded": {
+      "pass": true,
+      "delta": 0.29800000000000004
+    },
+    "targeted_pressure_constricts_viable_responses_by_at_least_10_percent": {
+      "pass": true,
+      "relative_reduction": 0.48012199400825883,
+      "threshold": 0.1
+    }
+  },
+  "pairs": [
+    {
+      "low_leverage_allocation": [
+        1,
+        7,
+        0,
+        0,
+        2
+      ],
+      "high_leverage_allocation": [
+        0,
+        0,
+        7,
+        1,
+        2
+      ],
+      "low_leverage": 0.375,
+      "high_leverage": 0.625,
+      "leverage_delta": 0.25,
+      "low_concentration": 0.7,
+      "high_concentration": 0.7,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.557275390625,
+      "high_expected_payoff": -0.5563476562499999,
+      "absolute_value_gap": 0.0009277343750000444,
+      "low_viable_responses": 696,
+      "high_viable_responses": 546,
+      "viable_response_delta_high_minus_low": -150
+    },
+    {
+      "low_leverage_allocation": [
+        6,
+        0,
+        2,
+        2,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        1,
+        6,
+        1,
+        2
+      ],
+      "low_leverage": 0.25,
+      "high_leverage": 0.6,
+      "leverage_delta": 0.35,
+      "low_concentration": 0.6,
+      "high_concentration": 0.6,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.478955078125,
+      "high_expected_payoff": -0.4822998046875,
+      "absolute_value_gap": 0.003344726562500011,
+      "low_viable_responses": 723,
+      "high_viable_responses": 458,
+      "viable_response_delta_high_minus_low": -265
+    },
+    {
+      "low_leverage_allocation": [
+        1,
+        7,
+        0,
+        2,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        0,
+        7,
+        2,
+        1
+      ],
+      "low_leverage": 0.325,
+      "high_leverage": 0.6,
+      "leverage_delta": 0.27499999999999997,
+      "low_concentration": 0.7,
+      "high_concentration": 0.7,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.47636718749999996,
+      "high_expected_payoff": -0.47543945312499997,
+      "absolute_value_gap": 0.0009277343749999889,
+      "low_viable_responses": 842,
+      "high_viable_responses": 583,
+      "viable_response_delta_high_minus_low": -259
+    },
+    {
+      "low_leverage_allocation": [
+        6,
+        0,
+        0,
+        3,
+        1
+      ],
+      "high_leverage_allocation": [
+        0,
+        0,
+        6,
+        2,
+        2
+      ],
+      "low_leverage": 0.325,
+      "high_leverage": 0.65,
+      "leverage_delta": 0.325,
+      "low_concentration": 0.6,
+      "high_concentration": 0.6,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.42585449218750004,
+      "high_expected_payoff": -0.432080078125,
+      "absolute_value_gap": 0.0062255859374999445,
+      "low_viable_responses": 729,
+      "high_viable_responses": 441,
+      "viable_response_delta_high_minus_low": -288
+    },
+    {
+      "low_leverage_allocation": [
+        7,
+        0,
+        3,
+        0,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        1,
+        1,
+        7,
+        1
+      ],
+      "low_leverage": 0.15,
+      "high_leverage": 0.7,
+      "leverage_delta": 0.5499999999999999,
+      "low_concentration": 0.7,
+      "high_concentration": 0.7,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.41621093750000004,
+      "high_expected_payoff": -0.4126708984375,
+      "absolute_value_gap": 0.0035400390625000555,
+      "low_viable_responses": 953,
+      "high_viable_responses": 514,
+      "viable_response_delta_high_minus_low": -439
+    },
+    {
+      "low_leverage_allocation": [
+        2,
+        0,
+        8,
+        0,
+        0
+      ],
+      "high_leverage_allocation": [
+        1,
+        0,
+        0,
+        8,
+        1
+      ],
+      "low_leverage": 0.4,
+      "high_leverage": 0.7,
+      "leverage_delta": 0.29999999999999993,
+      "low_concentration": 0.8,
+      "high_concentration": 0.8,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.400927734375,
+      "high_expected_payoff": -0.400634765625,
+      "absolute_value_gap": 0.0002929687500000111,
+      "low_viable_responses": 953,
+      "high_viable_responses": 669,
+      "viable_response_delta_high_minus_low": -284
+    },
+    {
+      "low_leverage_allocation": [
+        2,
+        6,
+        0,
+        2,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        1,
+        1,
+        6,
+        2
+      ],
+      "low_leverage": 0.3,
+      "high_leverage": 0.725,
+      "leverage_delta": 0.425,
+      "low_concentration": 0.6,
+      "high_concentration": 0.6,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.37666015625,
+      "high_expected_payoff": -0.3693115234375,
+      "absolute_value_gap": 0.007348632812499978,
+      "low_viable_responses": 833,
+      "high_viable_responses": 343,
+      "viable_response_delta_high_minus_low": -490
+    },
+    {
+      "low_leverage_allocation": [
+        2,
+        5,
+        1,
+        2,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        1,
+        5,
+        2,
+        2
+      ],
+      "low_leverage": 0.325,
+      "high_leverage": 0.625,
+      "leverage_delta": 0.3,
+      "low_concentration": 0.5,
+      "high_concentration": 0.5,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.363671875,
+      "high_expected_payoff": -0.3580322265625,
+      "absolute_value_gap": 0.005639648437499978,
+      "low_viable_responses": 705,
+      "high_viable_responses": 353,
+      "viable_response_delta_high_minus_low": -352
+    },
+    {
+      "low_leverage_allocation": [
+        6,
+        1,
+        3,
+        0,
+        0
+      ],
+      "high_leverage_allocation": [
+        1,
+        0,
+        1,
+        6,
+        2
+      ],
+      "low_leverage": 0.175,
+      "high_leverage": 0.7,
+      "leverage_delta": 0.5249999999999999,
+      "low_concentration": 0.6,
+      "high_concentration": 0.6,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.3421630859375,
+      "high_expected_payoff": -0.344287109375,
+      "absolute_value_gap": 0.002124023437500011,
+      "low_viable_responses": 907,
+      "high_viable_responses": 369,
+      "viable_response_delta_high_minus_low": -538
+    },
+    {
+      "low_leverage_allocation": [
+        5,
+        1,
+        1,
+        3,
+        0
+      ],
+      "high_leverage_allocation": [
+        1,
+        0,
+        5,
+        2,
+        2
+      ],
+      "low_leverage": 0.3,
+      "high_leverage": 0.6,
+      "leverage_delta": 0.3,
+      "low_concentration": 0.5,
+      "high_concentration": 0.5,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.338818359375,
+      "high_expected_payoff": -0.3330078125,
+      "absolute_value_gap": 0.005810546874999989,
+      "low_viable_responses": 715,
+      "high_viable_responses": 365,
+      "viable_response_delta_high_minus_low": -350
+    },
+    {
+      "low_leverage_allocation": [
+        2,
+        1,
+        7,
+        0,
+        0
+      ],
+      "high_leverage_allocation": [
+        1,
+        1,
+        0,
+        7,
+        1
+      ],
+      "low_leverage": 0.375,
+      "high_leverage": 0.65,
+      "leverage_delta": 0.275,
+      "low_concentration": 0.7,
+      "high_concentration": 0.7,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.3268798828125,
+      "high_expected_payoff": -0.3265869140625,
+      "absolute_value_gap": 0.0002929687500000111,
+      "low_viable_responses": 907,
+      "high_viable_responses": 611,
+      "viable_response_delta_high_minus_low": -296
+    },
+    {
+      "low_leverage_allocation": [
+        0,
+        6,
+        3,
+        0,
+        1
+      ],
+      "high_leverage_allocation": [
+        1,
+        1,
+        1,
+        6,
+        1
+      ],
+      "low_leverage": 0.4,
+      "high_leverage": 0.625,
+      "leverage_delta": 0.22499999999999998,
+      "low_concentration": 0.6,
+      "high_concentration": 0.6,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.31591796875,
+      "high_expected_payoff": -0.3135986328125,
+      "absolute_value_gap": 0.0023193359375,
+      "low_viable_responses": 709,
+      "high_viable_responses": 476,
+      "viable_response_delta_high_minus_low": -233
+    },
+    {
+      "low_leverage_allocation": [
+        0,
+        7,
+        3,
+        0,
+        0
+      ],
+      "high_leverage_allocation": [
+        1,
+        1,
+        1,
+        7,
+        0
+      ],
+      "low_leverage": 0.325,
+      "high_leverage": 0.6,
+      "leverage_delta": 0.27499999999999997,
+      "low_concentration": 0.7,
+      "high_concentration": 0.7,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.31591796875,
+      "high_expected_payoff": -0.3135986328125,
+      "absolute_value_gap": 0.0023193359375,
+      "low_viable_responses": 925,
+      "high_viable_responses": 703,
+      "viable_response_delta_high_minus_low": -222
+    },
+    {
+      "low_leverage_allocation": [
+        0,
+        4,
+        6,
+        0,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        0,
+        6,
+        1,
+        3
+      ],
+      "low_leverage": 0.4,
+      "high_leverage": 0.675,
+      "leverage_delta": 0.275,
+      "low_concentration": 0.6,
+      "high_concentration": 0.6,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.29970703125,
+      "high_expected_payoff": -0.2900390625,
+      "absolute_value_gap": 0.009667968749999978,
+      "low_viable_responses": 913,
+      "high_viable_responses": 448,
+      "viable_response_delta_high_minus_low": -465
+    },
+    {
+      "low_leverage_allocation": [
+        1,
+        2,
+        7,
+        0,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        2,
+        0,
+        7,
+        1
+      ],
+      "low_leverage": 0.4,
+      "high_leverage": 0.675,
+      "leverage_delta": 0.275,
+      "low_concentration": 0.7,
+      "high_concentration": 0.7,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.27658691406249997,
+      "high_expected_payoff": -0.2756591796875,
+      "absolute_value_gap": 0.0009277343749999889,
+      "low_viable_responses": 899,
+      "high_viable_responses": 591,
+      "viable_response_delta_high_minus_low": -308
+    },
+    {
+      "low_leverage_allocation": [
+        5,
+        2,
+        0,
+        0,
+        3
+      ],
+      "high_leverage_allocation": [
+        1,
+        1,
+        1,
+        5,
+        2
+      ],
+      "low_leverage": 0.35,
+      "high_leverage": 0.65,
+      "leverage_delta": 0.30000000000000004,
+      "low_concentration": 0.5,
+      "high_concentration": 0.5,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.2662841796875,
+      "high_expected_payoff": -0.2702392578125,
+      "absolute_value_gap": 0.003955078125000011,
+      "low_viable_responses": 596,
+      "high_viable_responses": 321,
+      "viable_response_delta_high_minus_low": -275
+    },
+    {
+      "low_leverage_allocation": [
+        4,
+        2,
+        1,
+        0,
+        3
+      ],
+      "high_leverage_allocation": [
+        0,
+        4,
+        1,
+        2,
+        3
+      ],
+      "low_leverage": 0.4,
+      "high_leverage": 0.6,
+      "leverage_delta": 0.19999999999999996,
+      "low_concentration": 0.4,
+      "high_concentration": 0.4,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.2532958984375,
+      "high_expected_payoff": -0.252783203125,
+      "absolute_value_gap": 0.0005126953124999778,
+      "low_viable_responses": 488,
+      "high_viable_responses": 327,
+      "viable_response_delta_high_minus_low": -161
+    },
+    {
+      "low_leverage_allocation": [
+        6,
+        0,
+        0,
+        0,
+        4
+      ],
+      "high_leverage_allocation": [
+        0,
+        2,
+        0,
+        6,
+        2
+      ],
+      "low_leverage": 0.4,
+      "high_leverage": 0.7,
+      "leverage_delta": 0.29999999999999993,
+      "low_concentration": 0.6,
+      "high_concentration": 0.6,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.23369140625,
+      "high_expected_payoff": -0.2322998046875,
+      "absolute_value_gap": 0.001391601562500011,
+      "low_viable_responses": 787,
+      "high_viable_responses": 409,
+      "viable_response_delta_high_minus_low": -378
+    },
+    {
+      "low_leverage_allocation": [
+        1,
+        6,
+        0,
+        3,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        1,
+        2,
+        6,
+        1
+      ],
+      "low_leverage": 0.375,
+      "high_leverage": 0.675,
+      "leverage_delta": 0.30000000000000004,
+      "low_concentration": 0.6,
+      "high_concentration": 0.6,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.22648925781249998,
+      "high_expected_payoff": -0.2288818359375,
+      "absolute_value_gap": 0.0023925781250000167,
+      "low_viable_responses": 800,
+      "high_viable_responses": 433,
+      "viable_response_delta_high_minus_low": -367
+    },
+    {
+      "low_leverage_allocation": [
+        1,
+        6,
+        3,
+        0,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        0,
+        6,
+        3,
+        1
+      ],
+      "low_leverage": 0.3,
+      "high_leverage": 0.625,
+      "leverage_delta": 0.325,
+      "low_concentration": 0.6,
+      "high_concentration": 0.6,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.216845703125,
+      "high_expected_payoff": -0.2255615234375,
+      "absolute_value_gap": 0.008715820312499983,
+      "low_viable_responses": 887,
+      "high_viable_responses": 513,
+      "viable_response_delta_high_minus_low": -374
+    },
+    {
+      "low_leverage_allocation": [
+        1,
+        5,
+        3,
+        0,
+        1
+      ],
+      "high_leverage_allocation": [
+        0,
+        2,
+        1,
+        5,
+        2
+      ],
+      "low_leverage": 0.375,
+      "high_leverage": 0.675,
+      "leverage_delta": 0.30000000000000004,
+      "low_concentration": 0.5,
+      "high_concentration": 0.5,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.216845703125,
+      "high_expected_payoff": -0.2193115234375,
+      "absolute_value_gap": 0.002465820312499978,
+      "low_viable_responses": 659,
+      "high_viable_responses": 314,
+      "viable_response_delta_high_minus_low": -345
+    },
+    {
+      "low_leverage_allocation": [
+        1,
+        5,
+        3,
+        1,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        1,
+        5,
+        1,
+        3
+      ],
+      "low_leverage": 0.35,
+      "high_leverage": 0.65,
+      "leverage_delta": 0.30000000000000004,
+      "low_concentration": 0.5,
+      "high_concentration": 0.5,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.216845703125,
+      "high_expected_payoff": -0.21599121093749998,
+      "absolute_value_gap": 0.0008544921875000278,
+      "low_viable_responses": 702,
+      "high_viable_responses": 361,
+      "viable_response_delta_high_minus_low": -341
+    },
+    {
+      "low_leverage_allocation": [
+        4,
+        1,
+        1,
+        4,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        2,
+        4,
+        2,
+        2
+      ],
+      "low_leverage": 0.375,
+      "high_leverage": 0.6,
+      "leverage_delta": 0.22499999999999998,
+      "low_concentration": 0.4,
+      "high_concentration": 0.4,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.2130859375,
+      "high_expected_payoff": -0.2080322265625,
+      "absolute_value_gap": 0.005053710937499983,
+      "low_viable_responses": 679,
+      "high_viable_responses": 307,
+      "viable_response_delta_high_minus_low": -372
+    },
+    {
+      "low_leverage_allocation": [
+        1,
+        3,
+        6,
+        0,
+        0
+      ],
+      "high_leverage_allocation": [
+        1,
+        0,
+        2,
+        6,
+        1
+      ],
+      "low_leverage": 0.375,
+      "high_leverage": 0.65,
+      "leverage_delta": 0.275,
+      "low_concentration": 0.6,
+      "high_concentration": 0.6,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.20063476562500002,
+      "high_expected_payoff": -0.203857421875,
+      "absolute_value_gap": 0.0032226562499999833,
+      "low_viable_responses": 881,
+      "high_viable_responses": 458,
+      "viable_response_delta_high_minus_low": -423
+    },
+    {
+      "low_leverage_allocation": [
+        5,
+        2,
+        3,
+        0,
+        0
+      ],
+      "high_leverage_allocation": [
+        1,
+        0,
+        5,
+        1,
+        3
+      ],
+      "low_leverage": 0.2,
+      "high_leverage": 0.625,
+      "leverage_delta": 0.425,
+      "low_concentration": 0.5,
+      "high_concentration": 0.5,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.1921630859375,
+      "high_expected_payoff": -0.190966796875,
+      "absolute_value_gap": 0.0011962890624999944,
+      "low_viable_responses": 875,
+      "high_viable_responses": 374,
+      "viable_response_delta_high_minus_low": -501
+    },
+    {
+      "low_leverage_allocation": [
+        2,
+        2,
+        5,
+        0,
+        1
+      ],
+      "high_leverage_allocation": [
+        0,
+        3,
+        1,
+        5,
+        1
+      ],
+      "low_leverage": 0.4,
+      "high_leverage": 0.6,
+      "leverage_delta": 0.19999999999999996,
+      "low_concentration": 0.5,
+      "high_concentration": 0.5,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.1768798828125,
+      "high_expected_payoff": -0.18671875000000002,
+      "absolute_value_gap": 0.009838867187500017,
+      "low_viable_responses": 640,
+      "high_viable_responses": 441,
+      "viable_response_delta_high_minus_low": -199
+    },
+    {
+      "low_leverage_allocation": [
+        2,
+        2,
+        5,
+        1,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        1,
+        2,
+        5,
+        2
+      ],
+      "low_leverage": 0.375,
+      "high_leverage": 0.7,
+      "leverage_delta": 0.32499999999999996,
+      "low_concentration": 0.5,
+      "high_concentration": 0.5,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.1768798828125,
+      "high_expected_payoff": -0.1855224609375,
+      "absolute_value_gap": 0.008642578124999994,
+      "low_viable_responses": 674,
+      "high_viable_responses": 288,
+      "viable_response_delta_high_minus_low": -386
+    },
+    {
+      "low_leverage_allocation": [
+        3,
+        2,
+        5,
+        0,
+        0
+      ],
+      "high_leverage_allocation": [
+        2,
+        1,
+        0,
+        5,
+        2
+      ],
+      "low_leverage": 0.3,
+      "high_leverage": 0.6,
+      "leverage_delta": 0.3,
+      "low_concentration": 0.5,
+      "high_concentration": 0.5,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.1759521484375,
+      "high_expected_payoff": -0.18352050781249998,
+      "absolute_value_gap": 0.007568359374999972,
+      "low_viable_responses": 863,
+      "high_viable_responses": 427,
+      "viable_response_delta_high_minus_low": -436
+    },
+    {
+      "low_leverage_allocation": [
+        2,
+        2,
+        6,
+        0,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        0,
+        1,
+        6,
+        3
+      ],
+      "low_leverage": 0.35,
+      "high_leverage": 0.8,
+      "leverage_delta": 0.45000000000000007,
+      "low_concentration": 0.6,
+      "high_concentration": 0.6,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.1768798828125,
+      "high_expected_payoff": -0.17705078125,
+      "absolute_value_gap": 0.0001708984375000111,
+      "low_viable_responses": 875,
+      "high_viable_responses": 273,
+      "viable_response_delta_high_minus_low": -602
+    },
+    {
+      "low_leverage_allocation": [
+        4,
+        1,
+        2,
+        3,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        4,
+        0,
+        4,
+        2
+      ],
+      "low_leverage": 0.35,
+      "high_leverage": 0.6,
+      "leverage_delta": 0.25,
+      "low_concentration": 0.4,
+      "high_concentration": 0.4,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.155029296875,
+      "high_expected_payoff": -0.15646972656250002,
+      "absolute_value_gap": 0.0014404296875000222,
+      "low_viable_responses": 597,
+      "high_viable_responses": 426,
+      "viable_response_delta_high_minus_low": -171
+    },
+    {
+      "low_leverage_allocation": [
+        2,
+        5,
+        0,
+        3,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        5,
+        0,
+        1,
+        4
+      ],
+      "low_leverage": 0.35,
+      "high_leverage": 0.6,
+      "leverage_delta": 0.25,
+      "low_concentration": 0.5,
+      "high_concentration": 0.5,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.1267822265625,
+      "high_expected_payoff": -0.1333984375,
+      "absolute_value_gap": 0.0066162109375000056,
+      "low_viable_responses": 794,
+      "high_viable_responses": 499,
+      "viable_response_delta_high_minus_low": -295
+    },
+    {
+      "low_leverage_allocation": [
+        2,
+        5,
+        3,
+        0,
+        0
+      ],
+      "high_leverage_allocation": [
+        3,
+        1,
+        0,
+        1,
+        5
+      ],
+      "low_leverage": 0.275,
+      "high_leverage": 0.6,
+      "leverage_delta": 0.32499999999999996,
+      "low_concentration": 0.5,
+      "high_concentration": 0.5,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.117138671875,
+      "high_expected_payoff": -0.1259521484375,
+      "absolute_value_gap": 0.008813476562499992,
+      "low_viable_responses": 863,
+      "high_viable_responses": 460,
+      "viable_response_delta_high_minus_low": -403
+    },
+    {
+      "low_leverage_allocation": [
+        2,
+        4,
+        3,
+        0,
+        1
+      ],
+      "high_leverage_allocation": [
+        0,
+        4,
+        1,
+        1,
+        4
+      ],
+      "low_leverage": 0.35,
+      "high_leverage": 0.625,
+      "leverage_delta": 0.275,
+      "low_concentration": 0.4,
+      "high_concentration": 0.4,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.117138671875,
+      "high_expected_payoff": -0.12041015625000001,
+      "absolute_value_gap": 0.0032714843750000083,
+      "low_viable_responses": 632,
+      "high_viable_responses": 377,
+      "viable_response_delta_high_minus_low": -255
+    },
+    {
+      "low_leverage_allocation": [
+        2,
+        4,
+        3,
+        1,
+        0
+      ],
+      "high_leverage_allocation": [
+        1,
+        2,
+        1,
+        4,
+        2
+      ],
+      "low_leverage": 0.325,
+      "high_leverage": 0.6,
+      "leverage_delta": 0.27499999999999997,
+      "low_concentration": 0.4,
+      "high_concentration": 0.4,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.117138671875,
+      "high_expected_payoff": -0.120361328125,
+      "absolute_value_gap": 0.0032226562499999972,
+      "low_viable_responses": 684,
+      "high_viable_responses": 305,
+      "viable_response_delta_high_minus_low": -379
+    },
+    {
+      "low_leverage_allocation": [
+        3,
+        4,
+        3,
+        0,
+        0
+      ],
+      "high_leverage_allocation": [
+        1,
+        1,
+        4,
+        1,
+        3
+      ],
+      "low_leverage": 0.25,
+      "high_leverage": 0.6,
+      "leverage_delta": 0.35,
+      "low_concentration": 0.4,
+      "high_concentration": 0.4,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.1162109375,
+      "high_expected_payoff": -0.11691894531250001,
+      "absolute_value_gap": 0.0007080078125000083,
+      "low_viable_responses": 853,
+      "high_viable_responses": 309,
+      "viable_response_delta_high_minus_low": -544
+    },
+    {
+      "low_leverage_allocation": [
+        4,
+        0,
+        2,
+        4,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        1,
+        4,
+        3,
+        2
+      ],
+      "low_leverage": 0.4,
+      "high_leverage": 0.65,
+      "leverage_delta": 0.25,
+      "low_concentration": 0.4,
+      "high_concentration": 0.4,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.1033447265625,
+      "high_expected_payoff": -0.108154296875,
+      "absolute_value_gap": 0.004809570312499997,
+      "low_viable_responses": 609,
+      "high_viable_responses": 291,
+      "viable_response_delta_high_minus_low": -318
+    },
+    {
+      "low_leverage_allocation": [
+        2,
+        3,
+        5,
+        0,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        1,
+        1,
+        5,
+        3
+      ],
+      "low_leverage": 0.325,
+      "high_leverage": 0.75,
+      "leverage_delta": 0.425,
+      "low_concentration": 0.5,
+      "high_concentration": 0.5,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.10092773437500001,
+      "high_expected_payoff": -0.10300292968750001,
+      "absolute_value_gap": 0.0020751953125,
+      "low_viable_responses": 857,
+      "high_viable_responses": 237,
+      "viable_response_delta_high_minus_low": -620
+    },
+    {
+      "low_leverage_allocation": [
+        3,
+        3,
+        4,
+        0,
+        0
+      ],
+      "high_leverage_allocation": [
+        3,
+        0,
+        1,
+        2,
+        4
+      ],
+      "low_leverage": 0.275,
+      "high_leverage": 0.6,
+      "leverage_delta": 0.32499999999999996,
+      "low_concentration": 0.4,
+      "high_concentration": 0.4,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.1,
+      "high_expected_payoff": -0.096435546875,
+      "absolute_value_gap": 0.0035644531250000056,
+      "low_viable_responses": 849,
+      "high_viable_responses": 338,
+      "viable_response_delta_high_minus_low": -511
+    },
+    {
+      "low_leverage_allocation": [
+        1,
+        4,
+        3,
+        2,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        1,
+        4,
+        2,
+        3
+      ],
+      "low_leverage": 0.4,
+      "high_leverage": 0.675,
+      "leverage_delta": 0.275,
+      "low_concentration": 0.4,
+      "high_concentration": 0.4,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.09257812500000001,
+      "high_expected_payoff": -0.0917236328125,
+      "absolute_value_gap": 0.0008544921875000139,
+      "low_viable_responses": 572,
+      "high_viable_responses": 267,
+      "viable_response_delta_high_minus_low": -305
+    },
+    {
+      "low_leverage_allocation": [
+        4,
+        2,
+        0,
+        4,
+        0
+      ],
+      "high_leverage_allocation": [
+        1,
+        0,
+        4,
+        3,
+        2
+      ],
+      "low_leverage": 0.35,
+      "high_leverage": 0.625,
+      "leverage_delta": 0.275,
+      "low_concentration": 0.4,
+      "high_concentration": 0.4,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.07607421874999999,
+      "high_expected_payoff": -0.0831298828125,
+      "absolute_value_gap": 0.007055664062500008,
+      "low_viable_responses": 819,
+      "high_viable_responses": 305,
+      "viable_response_delta_high_minus_low": -514
+    },
+    {
+      "low_leverage_allocation": [
+        3,
+        2,
+        3,
+        2,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        3,
+        2,
+        2,
+        3
+      ],
+      "low_leverage": 0.35,
+      "high_leverage": 0.625,
+      "leverage_delta": 0.275,
+      "low_concentration": 0.3,
+      "high_concentration": 0.3,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.0678955078125,
+      "high_expected_payoff": -0.068994140625,
+      "absolute_value_gap": 0.0010986328125,
+      "low_viable_responses": 574,
+      "high_viable_responses": 259,
+      "viable_response_delta_high_minus_low": -315
+    },
+    {
+      "low_leverage_allocation": [
+        3,
+        2,
+        1,
+        4,
+        0
+      ],
+      "high_leverage_allocation": [
+        1,
+        0,
+        4,
+        2,
+        3
+      ],
+      "low_leverage": 0.4,
+      "high_leverage": 0.65,
+      "leverage_delta": 0.25,
+      "low_concentration": 0.4,
+      "high_concentration": 0.4,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.0630859375,
+      "high_expected_payoff": -0.06669921875,
+      "absolute_value_gap": 0.0036132812500000028,
+      "low_viable_responses": 641,
+      "high_viable_responses": 281,
+      "viable_response_delta_high_minus_low": -360
+    },
+    {
+      "low_leverage_allocation": [
+        2,
+        2,
+        4,
+        2,
+        0
+      ],
+      "high_leverage_allocation": [
+        2,
+        0,
+        2,
+        4,
+        2
+      ],
+      "low_leverage": 0.4,
+      "high_leverage": 0.6,
+      "leverage_delta": 0.19999999999999996,
+      "low_concentration": 0.4,
+      "high_concentration": 0.4,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.0526123046875,
+      "high_expected_payoff": -0.0609130859375,
+      "absolute_value_gap": 0.00830078125,
+      "low_viable_responses": 549,
+      "high_viable_responses": 302,
+      "viable_response_delta_high_minus_low": -247
+    },
+    {
+      "low_leverage_allocation": [
+        4,
+        0,
+        3,
+        3,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        2,
+        2,
+        4,
+        2
+      ],
+      "low_leverage": 0.375,
+      "high_leverage": 0.65,
+      "leverage_delta": 0.275,
+      "low_concentration": 0.4,
+      "high_concentration": 0.4,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.042065429687499996,
+      "high_expected_payoff": -0.03564453125,
+      "absolute_value_gap": 0.006420898437499996,
+      "low_viable_responses": 575,
+      "high_viable_responses": 264,
+      "viable_response_delta_high_minus_low": -311
+    },
+    {
+      "low_leverage_allocation": [
+        2,
+        4,
+        0,
+        4,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        4,
+        0,
+        2,
+        4
+      ],
+      "low_leverage": 0.4,
+      "high_leverage": 0.65,
+      "leverage_delta": 0.25,
+      "low_concentration": 0.4,
+      "high_concentration": 0.4,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.0010498046875,
+      "high_expected_payoff": -0.009130859375000005,
+      "absolute_value_gap": 0.008081054687500006,
+      "low_viable_responses": 777,
+      "high_viable_responses": 379,
+      "viable_response_delta_high_minus_low": -398
+    },
+    {
+      "low_leverage_allocation": [
+        3,
+        2,
+        2,
+        3,
+        0
+      ],
+      "high_leverage_allocation": [
+        1,
+        1,
+        3,
+        2,
+        3
+      ],
+      "low_leverage": 0.375,
+      "high_leverage": 0.625,
+      "leverage_delta": 0.25,
+      "low_concentration": 0.3,
+      "high_concentration": 0.3,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.005029296875,
+      "high_expected_payoff": -0.0088623046875,
+      "absolute_value_gap": 0.003833007812499999,
+      "low_viable_responses": 563,
+      "high_viable_responses": 234,
+      "viable_response_delta_high_minus_low": -329
+    },
+    {
+      "low_leverage_allocation": [
+        3,
+        3,
+        0,
+        4,
+        0
+      ],
+      "high_leverage_allocation": [
+        1,
+        1,
+        1,
+        4,
+        3
+      ],
+      "low_leverage": 0.375,
+      "high_leverage": 0.675,
+      "leverage_delta": 0.30000000000000004,
+      "low_concentration": 0.4,
+      "high_concentration": 0.4,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": -0.0001220703125,
+      "high_expected_payoff": -0.0040527343749999995,
+      "absolute_value_gap": 0.0039306640624999995,
+      "low_viable_responses": 791,
+      "high_viable_responses": 234,
+      "viable_response_delta_high_minus_low": -557
+    },
+    {
+      "low_leverage_allocation": [
+        2,
+        3,
+        3,
+        2,
+        0
+      ],
+      "high_leverage_allocation": [
+        2,
+        0,
+        3,
+        2,
+        3
+      ],
+      "low_leverage": 0.375,
+      "high_leverage": 0.6,
+      "leverage_delta": 0.22499999999999998,
+      "low_concentration": 0.3,
+      "high_concentration": 0.3,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": 0.007128906249999995,
+      "high_expected_payoff": 0.016796875,
+      "absolute_value_gap": 0.009667968750000006,
+      "low_viable_responses": 563,
+      "high_viable_responses": 270,
+      "viable_response_delta_high_minus_low": -293
+    },
+    {
+      "low_leverage_allocation": [
+        3,
+        1,
+        3,
+        3,
+        0
+      ],
+      "high_leverage_allocation": [
+        0,
+        2,
+        3,
+        3,
+        2
+      ],
+      "low_leverage": 0.4,
+      "high_leverage": 0.625,
+      "leverage_delta": 0.22499999999999998,
+      "low_concentration": 0.3,
+      "high_concentration": 0.3,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": 0.031982421875,
+      "high_expected_payoff": 0.025634765625,
+      "absolute_value_gap": 0.00634765625,
+      "low_viable_responses": 526,
+      "high_viable_responses": 261,
+      "viable_response_delta_high_minus_low": -265
+    },
+    {
+      "low_leverage_allocation": [
+        2,
+        3,
+        2,
+        3,
+        0
+      ],
+      "high_leverage_allocation": [
+        2,
+        0,
+        2,
+        3,
+        3
+      ],
+      "low_leverage": 0.4,
+      "high_leverage": 0.625,
+      "leverage_delta": 0.22499999999999998,
+      "low_concentration": 0.3,
+      "high_concentration": 0.3,
+      "absolute_concentration_gap": 0.0,
+      "low_expected_payoff": 0.0699951171875,
+      "high_expected_payoff": 0.0796630859375,
+      "absolute_value_gap": 0.009667968750000006,
+      "low_viable_responses": 548,
+      "high_viable_responses": 248,
+      "viable_response_delta_high_minus_low": -300
+    }
+  ],
+  "claim_scope": "matched synthetic causal probe of value-targeted commitment; not a substrate-general Pressure construct claim"
+}
