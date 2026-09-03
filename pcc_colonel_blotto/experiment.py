@@ -18,6 +18,8 @@ from .agents import (
     PressureAgent,
     ShuffledHistoryControl,
     StaticWeightedOpponent,
+    UniformRandomAgent,
+    MeanProfileExploiter,
     ValueBaseline,
 )
 from .game import Allocation, BlottoGame, compositions
@@ -1067,4 +1069,141 @@ def write_pressure_leverage_intervention(output_dir: str | Path) -> dict:
         "A positive result supports **value-targeted commitment** as a candidate Blotto Pressure mechanism after raw concentration failed in v0.5. It does not establish that battlefield value is the only relevant form of leverage, nor that the result generalizes beyond this Blotto parameterization.",
     ]
     (out / "PRESSURE_LEVERAGE_INTERVENTION.md").write_text("\n".join(lines) + "\n")
+    return result
+
+
+CHAOS_EXPLOITER_ROUNDS = 200
+CHAOS_EXPLOITER_SEEDS = 24
+CHAOS_MIN_ENTROPY_RATIO = 0.80
+CHAOS_MIN_VALUE_ADVANTAGE = 0.05
+
+
+def run_chaos_exploiter_falsification(
+    rounds: int = CHAOS_EXPLOITER_ROUNDS,
+    seeds: int = CHAOS_EXPLOITER_SEEDS,
+) -> dict:
+    """v0.7: separate raw entropy from strategically guarded unpredictability."""
+    game = BlottoGame()
+    agents = [ValueBaseline(), UniformRandomAgent(), ChaosAgent()]
+    opponents = [StaticWeightedOpponent(), MeanProfileExploiter()]
+    rows: list[dict] = []
+    for agent in agents:
+        for opponent in opponents:
+            summaries = [
+                run_match(agent, opponent, rounds=rounds, seed=s, game=game)
+                for s in range(seeds)
+            ]
+            rows.append({
+                "agent": agent.name,
+                "opponent": opponent.name,
+                "rounds_per_seed": rounds,
+                "seeds": seeds,
+                "mean_payoff": sum(x.mean_payoff for x in summaries) / seeds,
+                "win_rate": sum(x.win_rate for x in summaries) / seeds,
+                "allocation_entropy": sum(x.allocation_entropy for x in summaries) / seeds,
+                "mean_concentration": sum(x.mean_concentration for x in summaries) / seeds,
+            })
+
+    by_key = {(r["agent"], r["opponent"]): r for r in rows}
+    policies = ("baseline", "uniform_random", "chaos")
+    exploit_penalty = {
+        p: by_key[(p, "static_weighted")]["mean_payoff"]
+        - by_key[(p, "mean_profile_exploiter")]["mean_payoff"]
+        for p in policies
+    }
+    chaos_entropy = by_key[("chaos", "mean_profile_exploiter")]["allocation_entropy"]
+    random_entropy = by_key[("uniform_random", "mean_profile_exploiter")]["allocation_entropy"]
+    entropy_ratio = chaos_entropy / random_entropy if random_entropy else None
+    chaos_exploiter_payoff = by_key[("chaos", "mean_profile_exploiter")]["mean_payoff"]
+    random_exploiter_payoff = by_key[("uniform_random", "mean_profile_exploiter")]["mean_payoff"]
+    value_advantage = chaos_exploiter_payoff - random_exploiter_payoff
+
+    checks = {
+        "guarded_chaos_retains_at_least_80_percent_random_entropy": {
+            "pass": bool(entropy_ratio is not None and entropy_ratio >= CHAOS_MIN_ENTROPY_RATIO),
+            "entropy_ratio": entropy_ratio,
+            "threshold": CHAOS_MIN_ENTROPY_RATIO,
+        },
+        "guarded_chaos_beats_uniform_random_vs_exploiter_by_at_least_0_05": {
+            "pass": value_advantage >= CHAOS_MIN_VALUE_ADVANTAGE,
+            "payoff_advantage": value_advantage,
+            "threshold": CHAOS_MIN_VALUE_ADVANTAGE,
+        },
+        "guarded_chaos_exploit_penalty_no_worse_than_predictable_baseline": {
+            "pass": exploit_penalty["chaos"] <= exploit_penalty["baseline"],
+            "chaos_exploit_penalty": exploit_penalty["chaos"],
+            "baseline_exploit_penalty": exploit_penalty["baseline"],
+        },
+    }
+    return {
+        "schema": "pcc-colonel-blotto-chaos-exploiter-falsification-v0.7",
+        "game": {"troops": game.troops, "values": list(game.values), "battlefields": game.battlefields},
+        "design": {
+            "rounds_per_seed": rounds,
+            "seeds": seeds,
+            "paired_seeds": True,
+            "held_out_exploiter": "MeanProfileExploiter(lookback=12), exact best response to recent mean-profile prediction",
+            "uniform_random_support": len(compositions(game.troops, game.battlefields)),
+            "primary_success_rule": "all three prespecified checks must pass",
+        },
+        "results": rows,
+        "aggregate": {
+            "chaos_entropy_ratio_vs_uniform_random": entropy_ratio,
+            "chaos_payoff_advantage_over_uniform_random_vs_exploiter": value_advantage,
+            "exploit_penalty": exploit_penalty,
+            "all_primary_checks_pass": all(x["pass"] for x in checks.values()),
+        },
+        "prespecified_checks": checks,
+        "claim_scope": "synthetic held-out-exploiter falsification of guarded unpredictability; not observational construct recovery",
+    }
+
+
+def write_chaos_exploiter_falsification(
+    output_dir: str | Path,
+    rounds: int = CHAOS_EXPLOITER_ROUNDS,
+    seeds: int = CHAOS_EXPLOITER_SEEDS,
+) -> dict:
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    result = run_chaos_exploiter_falsification(rounds=rounds, seeds=seeds)
+    (out / "chaos-exploiter-falsification.json").write_text(json.dumps(result, indent=2) + "\n")
+    by_key = {(r["agent"], r["opponent"]): r for r in result["results"]}
+    labels = {"baseline": "Value Baseline", "uniform_random": "Uniform Random", "chaos": "Guarded Chaos"}
+    lines = [
+        "# PCC Colonel Blotto v0.7 Guarded-Chaos Exploiter Falsification",
+        "",
+        "This experiment separates raw action entropy from strategically adequate unpredictability using a held-out online learner.",
+        "",
+        "## Results",
+        "",
+        "| policy | payoff vs static | payoff vs exploiter | entropy vs exploiter | exploit penalty |",
+        "|---|---:|---:|---:|---:|",
+    ]
+    penalties = result["aggregate"]["exploit_penalty"]
+    for p in ("baseline", "uniform_random", "chaos"):
+        lines.append(
+            f"| {labels[p]} | {by_key[(p, 'static_weighted')]['mean_payoff']:.4f} | "
+            f"{by_key[(p, 'mean_profile_exploiter')]['mean_payoff']:.4f} | "
+            f"{by_key[(p, 'mean_profile_exploiter')]['allocation_entropy']:.4f} | {penalties[p]:.4f} |"
+        )
+    lines += [
+        "",
+        f"Guarded-Chaos entropy / Uniform-Random entropy: **{result['aggregate']['chaos_entropy_ratio_vs_uniform_random']:.1%}**",
+        "",
+        f"Guarded-Chaos payoff advantage over Uniform Random vs exploiter: **{result['aggregate']['chaos_payoff_advantage_over_uniform_random_vs_exploiter']:+.4f}**",
+        "",
+        "## Prespecified checks",
+        "",
+    ]
+    for name, item in result["prespecified_checks"].items():
+        lines.append(f"- **{name}**: {'PASS' if item['pass'] else 'FAIL'}")
+    lines += [
+        "",
+        f"Overall primary rule: **{'PASS' if result['aggregate']['all_primary_checks_pass'] else 'FAIL'}**",
+        "",
+        "## Interpretation guardrail",
+        "",
+        "Passing supports a Blotto mechanism of unpredictability constrained by strategic adequacy. It does not identify entropy itself with Chaos, establish minimax optimality, or establish observational PCC recovery.",
+    ]
+    (out / "CHAOS_EXPLOITER_FALSIFICATION.md").write_text("\n".join(lines) + "\n")
     return result

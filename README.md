@@ -167,3 +167,30 @@ Frozen result:
 This sharply distinguishes v0.6 from v0.5: concentration alone increased viable responses, whereas **value-targeted commitment at matched concentration and strategic value strongly constricts the response set**. This promotes value-targeted commitment as a candidate Blotto Pressure mechanism, not yet as a substrate-general construct claim.
 
 See `docs/PRESSURE_LEVERAGE_INTERVENTION_PROTOCOL.md` and `validation/PRESSURE_LEVERAGE_INTERVENTION.md`.
+
+## v0.7 Guarded-Chaos exploiter falsification
+
+v0.7 separates **raw unpredictability** from **strategically adequate unpredictability**. It compares the low-entropy Value Baseline, unconstrained Uniform Random allocation, and the existing guarded `ChaosAgent` against both the frozen static opponent and a held-out online `MeanProfileExploiter` that predicts recent allocation tendencies and computes an exact best response.
+
+Run it with:
+
+```bash
+python -m pcc_colonel_blotto chaos-exploiter-falsification \
+  --output-dir validation \
+  --rounds 200 \
+  --seeds 24
+```
+
+Frozen result against the held-out exploiter:
+
+- Value Baseline: payoff **-0.3485**, entropy **0.8272**
+- Uniform Random: payoff **-0.2098**, entropy **5.1656**
+- Guarded Chaos: payoff **+0.0844**, entropy **4.8098**
+- Guarded-Chaos entropy / Uniform-Random entropy: **93.1%**
+- Guarded-Chaos payoff advantage over Uniform Random: **+0.2943**
+- Exploit penalty: Baseline **0.3495**, Uniform Random **-0.0145**, Guarded Chaos **0.0249**
+- Prespecified three-part primary rule: **PASS**
+
+The important distinction is that Uniform Random is extremely unpredictable but strategically poor, while Guarded Chaos preserves nearly the same empirical action entropy and remains value-positive against the learner. This supports **unpredictability constrained by strategic adequacy** as the candidate Blotto Chaos mechanism; it does not identify entropy alone with Chaos or establish observational construct recovery.
+
+See `docs/CHAOS_EXPLOITER_PROTOCOL.md` and `validation/CHAOS_EXPLOITER_FALSIFICATION.md`.

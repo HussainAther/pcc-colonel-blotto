@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.0 - Guarded-Chaos exploiter falsification
+
+- Added an unconstrained Uniform Random baseline to separate raw entropy from strategic adequacy.
+- Added a held-out `MeanProfileExploiter` that learns recent allocation tendencies and computes exact best responses.
+- Prespecified a three-part success rule: >=80% of random entropy, >=0.05 payoff advantage over random versus the exploiter, and exploit penalty no worse than the predictable baseline.
+- Frozen 24-seed result: Guarded Chaos retains 93.1% of random entropy and beats Uniform Random by +0.2943 payoff against the exploiter.
+- Exploit penalty is 0.0249 for Guarded Chaos versus 0.3495 for the predictable baseline.
+- All three primary checks PASS; interpretation remains mechanism-level and does not equate entropy alone with Chaos.
+- Added protocol, CLI command, frozen validation output, and three tests; full suite now contains 26 tests.
+
 ## 0.6.0 - Targeted-leverage Pressure intervention
 
 - Added a prospective matched intervention separating raw concentration from value-targeted commitment.

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import random
+from functools import lru_cache
 from dataclasses import dataclass, field
 from typing import Protocol
 
@@ -248,3 +249,60 @@ class ChangePointControl:
         if not opponent_history:
             return ValueBaseline().act(game, [], rng)
         return _control_allocation_from_means(game, self.estimate(game, opponent_history))
+
+@dataclass
+class UniformRandomAgent:
+    """Maximum-entropy action baseline with no strategic value guardrail."""
+    name: str = "uniform_random"
+
+    def act(self, game: BlottoGame, opponent_history: list[Allocation], rng: random.Random) -> Allocation:
+        return rng.choice(compositions(game.troops, game.battlefields))
+
+
+
+
+@lru_cache(maxsize=None)
+def _exact_best_response(game: BlottoGame, predicted: Allocation) -> Allocation:
+    best_action = None
+    best_payoff = float("-inf")
+    for a in compositions(game.troops, game.battlefields):
+        score = game.payoff(a, predicted)
+        if score > best_payoff or (score == best_payoff and (best_action is None or a < best_action)):
+            best_payoff = score
+            best_action = a
+    assert best_action is not None
+    return best_action
+
+
+@dataclass
+class MeanProfileExploiter:
+    """Held-out online exploiter for repeated Blotto.
+
+    The opponent predicts the player's next allocation from a recent empirical
+    mean profile, repairs that profile to the troop budget, then chooses an exact
+    pure best response over all legal allocations.  This family is intentionally
+    separate from the opponents used to construct or tune ChaosAgent.
+    """
+    name: str = "mean_profile_exploiter"
+    lookback: int = 12
+
+    def _prediction(self, game: BlottoGame, opponent_history: list[Allocation]) -> Allocation:
+        if not opponent_history:
+            return _weighted_integer_allocation(game.troops, list(game.values))
+        hist = opponent_history[-self.lookback:]
+        means = [sum(a[i] for a in hist) / len(hist) for i in range(game.battlefields)]
+        pred = [int(round(x)) for x in means]
+        while sum(pred) < game.troops:
+            # Add to the battlefield whose rounded value is furthest below its mean;
+            # use battlefield value only as a deterministic tie-break.
+            i = max(range(game.battlefields), key=lambda j: (means[j] - pred[j], game.values[j], -j))
+            pred[i] += 1
+        while sum(pred) > game.troops:
+            candidates = [j for j in range(game.battlefields) if pred[j] > 0]
+            i = max(candidates, key=lambda j: (pred[j] - means[j], -game.values[j], -j))
+            pred[i] -= 1
+        return tuple(pred)
+
+    def act(self, game: BlottoGame, opponent_history: list[Allocation], rng: random.Random) -> Allocation:
+        predicted = self._prediction(game, opponent_history)
+        return _exact_best_response(game, predicted)

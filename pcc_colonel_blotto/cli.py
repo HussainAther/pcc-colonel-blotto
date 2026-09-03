@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from .experiment import write_control_estimator_ablation, write_control_history_destruction, write_control_regime_switching, write_pressure_leverage_intervention, write_pressure_matched_intervention, write_probe
+from .experiment import write_chaos_exploiter_falsification, write_control_estimator_ablation, write_control_history_destruction, write_control_regime_switching, write_pressure_leverage_intervention, write_pressure_matched_intervention, write_probe
 
 
 def main() -> None:
@@ -30,6 +30,10 @@ def main() -> None:
     pressure.add_argument("--output-dir", default="validation")
     leverage = sub.add_parser("pressure-leverage-intervention", help="run the v0.6 targeted-leverage Pressure intervention")
     leverage.add_argument("--output-dir", default="validation")
+    chaos = sub.add_parser("chaos-exploiter-falsification", help="run the v0.7 guarded-Chaos held-out exploiter falsification")
+    chaos.add_argument("--output-dir", default="validation")
+    chaos.add_argument("--rounds", type=int, default=200)
+    chaos.add_argument("--seeds", type=int, default=24)
     args = parser.parse_args()
     if args.command == "mechanism-probe":
         result = write_probe(args.output_dir, rounds=args.rounds, seeds=args.seeds)
@@ -52,6 +56,16 @@ def main() -> None:
         for name, d in result["aggregate"].items():
             print(f"{name}: mean={d['mean_payoff']:.6f} post_switch={d['post_switch_mean_payoff']:.6f}")
         print("qualifying estimators: " + (", ".join(result["qualifying_estimators"]) if result["qualifying_estimators"] else "none"))
+        for name, item in result["prespecified_checks"].items():
+            print(f"{name}: {'PASS' if item['pass'] else 'FAIL'}")
+    elif args.command == "chaos-exploiter-falsification":
+        result = write_chaos_exploiter_falsification(args.output_dir, rounds=args.rounds, seeds=args.seeds)
+        by_key = {(r["agent"], r["opponent"]): r for r in result["results"]}
+        for policy in ("baseline", "uniform_random", "chaos"):
+            r = by_key[(policy, "mean_profile_exploiter")]
+            print(f"{policy}: payoff={r['mean_payoff']:.6f} entropy={r['allocation_entropy']:.6f}")
+        print(f"chaos value advantage over random: {result['aggregate']['chaos_payoff_advantage_over_uniform_random_vs_exploiter']:.6f}")
+        print(f"chaos entropy ratio: {result['aggregate']['chaos_entropy_ratio_vs_uniform_random']:.3%}")
         for name, item in result["prespecified_checks"].items():
             print(f"{name}: {'PASS' if item['pass'] else 'FAIL'}")
     elif args.command == "pressure-leverage-intervention":
