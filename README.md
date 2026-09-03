@@ -121,3 +121,26 @@ Sliding-window Control is the strongest Control estimator overall and improves t
 An important bookkeeping correction is now explicit: the v0.3 `ControlAgent` itself used an 8-round lookback, so it corresponds most closely to the v0.4 Sliding-window estimator rather than Full-history Control.
 
 See `docs/CONTROL_ESTIMATOR_ABLATION_PROTOCOL.md` and `validation/CONTROL_ESTIMATOR_ABLATION.md`.
+
+## v0.5 Pressure matched-concentration intervention
+
+v0.5 moves from engineered-policy comparison to a matched causal probe of **raw allocation concentration**. Every legal allocation spends the same 10-troop budget. Low-concentration and high-concentration allocations are matched without replacement on expected payoff against one frozen, policy-independent reference opponent distribution (absolute expected-payoff gap <= 0.01), then the opponent's viable pure-response count is computed exactly over all 1,001 legal responses.
+
+Run it with:
+
+```bash
+python -m pcc_colonel_blotto pressure-matched-intervention --output-dir validation
+```
+
+Frozen result:
+
+- matched pairs: **310**
+- mean strategic-value gap: **0.00429**
+- mean concentration: **0.3732 -> 0.5555**
+- mean viable responses: **458.48 -> 516.08**
+- relative viable-response reduction: **-12.56%**
+- prespecified >=5% constriction criterion: **FAIL**
+
+The direction reverses the raw-concentration prediction: when strategic value is approximately matched, higher concentration leaves the opponent with **more**, not fewer, non-losing pure responses on average. Therefore raw concentration alone is not promoted as the Blotto Pressure mechanism. The earlier engineered `PressureAgent` result may depend on *where* resources are concentrated (battlefield value/leverage), not merely how concentrated the allocation is.
+
+See `docs/PRESSURE_MATCHED_INTERVENTION_PROTOCOL.md` and `validation/PRESSURE_MATCHED_INTERVENTION.md`.

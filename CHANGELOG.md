@@ -1,3 +1,13 @@
+## 0.5.0 - Pressure matched-concentration intervention
+
+- Added a deterministic matched causal probe of raw allocation concentration.
+- Held the 10-troop budget exactly fixed and matched low- vs high-concentration allocations on expected payoff against a frozen independent opponent distribution (tolerance <=0.01).
+- Counted opponent viable pure responses exactly over all 1,001 legal allocations.
+- Froze 310 matched pairs: concentration rises 0.3732 -> 0.5555 while viable responses rise 458.48 -> 516.08.
+- The prespecified >=5% constriction prediction **fails**; observed relative constriction is **-12.56%**.
+- Raw concentration is therefore not promoted as the Pressure mechanism; value-weighted targeting/leverage remains a separate hypothesis.
+- Added the `pressure-matched-intervention` CLI command and three tests, bringing the suite to 19 tests.
+
 ## 0.4.0 - Control estimator ablation
 
 - Held the v0.3 three-regime replay fixed and compared Full-history, Sliding-window, Exponential-decay, and Change-point Control estimators.

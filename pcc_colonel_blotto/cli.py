@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from .experiment import write_control_estimator_ablation, write_control_history_destruction, write_control_regime_switching, write_probe
+from .experiment import write_control_estimator_ablation, write_control_history_destruction, write_control_regime_switching, write_pressure_matched_intervention, write_probe
 
 
 def main() -> None:
@@ -26,6 +26,8 @@ def main() -> None:
     estimator.add_argument("--rounds", type=int, default=300)
     estimator.add_argument("--seeds", type=int, default=32)
     estimator.add_argument("--adaptation-window", type=int, default=16)
+    pressure = sub.add_parser("pressure-matched-intervention", help="run the v0.5 matched concentration intervention for Pressure")
+    pressure.add_argument("--output-dir", default="validation")
     args = parser.parse_args()
     if args.command == "mechanism-probe":
         result = write_probe(args.output_dir, rounds=args.rounds, seeds=args.seeds)
@@ -48,6 +50,15 @@ def main() -> None:
         for name, d in result["aggregate"].items():
             print(f"{name}: mean={d['mean_payoff']:.6f} post_switch={d['post_switch_mean_payoff']:.6f}")
         print("qualifying estimators: " + (", ".join(result["qualifying_estimators"]) if result["qualifying_estimators"] else "none"))
+        for name, item in result["prespecified_checks"].items():
+            print(f"{name}: {'PASS' if item['pass'] else 'FAIL'}")
+    elif args.command == "pressure-matched-intervention":
+        result = write_pressure_matched_intervention(args.output_dir)
+        a = result["aggregate"]
+        print(f"matched pairs: {a['matched_pairs']}")
+        print(f"mean concentration: {a['mean_low_concentration']:.6f} -> {a['mean_high_concentration']:.6f}")
+        print(f"mean viable responses: {a['mean_low_viable_responses']:.6f} -> {a['mean_high_viable_responses']:.6f}")
+        print(f"relative viable-response reduction: {a['relative_viable_response_reduction']:.3%}")
         for name, item in result["prespecified_checks"].items():
             print(f"{name}: {'PASS' if item['pass'] else 'FAIL'}")
     elif args.command == "control-regime-switching":

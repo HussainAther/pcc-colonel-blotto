@@ -20,7 +20,7 @@ from .agents import (
     StaticWeightedOpponent,
     ValueBaseline,
 )
-from .game import Allocation, BlottoGame
+from .game import Allocation, BlottoGame, compositions
 
 
 @dataclass
@@ -720,4 +720,174 @@ def write_control_estimator_ablation(output_dir: str | Path, rounds: int = 300, 
         "This experiment identifies whether recency-aware belief estimation improves engineered Control under fixed nonstationarity. It does not establish that the selected estimator is universally optimal or that observational PCC recovery has been achieved.",
     ]
     (out / "CONTROL_ESTIMATOR_ABLATION.md").write_text("\n".join(lines) + "\n")
+    return result
+
+
+PRESSURE_MATCH_SEED = 20260903
+PRESSURE_REFERENCE_SAMPLES = 2048
+PRESSURE_LOW_MAX_CONCENTRATION = 0.40
+PRESSURE_HIGH_MIN_CONCENTRATION = 0.50
+PRESSURE_VALUE_TOLERANCE = 0.01
+PRESSURE_MIN_RELATIVE_CONSTRICTION = 0.05
+
+
+def _pressure_reference_trace(game: BlottoGame, samples: int = PRESSURE_REFERENCE_SAMPLES) -> list[Allocation]:
+    """Frozen policy-independent opponent distribution for strategic-value matching."""
+    rng = random.Random(PRESSURE_MATCH_SEED)
+    opponent = StaticWeightedOpponent()
+    return [opponent.act(game, [], rng) for _ in range(samples)]
+
+
+def _expected_payoff_against_trace(game: BlottoGame, allocation: Allocation, trace: list[Allocation]) -> float:
+    return sum(game.payoff(allocation, b) for b in trace) / len(trace)
+
+
+def _match_pressure_pairs(game: BlottoGame) -> tuple[list[dict], dict]:
+    """Match low- and high-concentration allocations on expected strategic value.
+
+    The match is deterministic and without replacement. High-concentration actions
+    are traversed by expected value, and each is paired to the remaining eligible
+    low-concentration action with the smallest absolute expected-payoff gap.
+    """
+    universe = compositions(game.troops, game.battlefields)
+    reference = _pressure_reference_trace(game)
+    expected_value = {
+        a: _expected_payoff_against_trace(game, a, reference)
+        for a in universe
+    }
+    viable = {a: game.viable_responses(a) for a in universe}
+    low = [a for a in universe if concentration(a) <= PRESSURE_LOW_MAX_CONCENTRATION]
+    high = [a for a in universe if concentration(a) >= PRESSURE_HIGH_MIN_CONCENTRATION]
+    available_low = set(low)
+    pairs: list[dict] = []
+    for high_action in sorted(high, key=lambda a: (expected_value[a], a)):
+        candidates = [
+            a for a in available_low
+            if abs(expected_value[a] - expected_value[high_action]) <= PRESSURE_VALUE_TOLERANCE
+        ]
+        if not candidates:
+            continue
+        low_action = min(
+            candidates,
+            key=lambda a: (abs(expected_value[a] - expected_value[high_action]), a),
+        )
+        available_low.remove(low_action)
+        pairs.append({
+            "low_allocation": list(low_action),
+            "high_allocation": list(high_action),
+            "low_concentration": concentration(low_action),
+            "high_concentration": concentration(high_action),
+            "concentration_delta": concentration(high_action) - concentration(low_action),
+            "low_expected_payoff": expected_value[low_action],
+            "high_expected_payoff": expected_value[high_action],
+            "absolute_value_gap": abs(expected_value[high_action] - expected_value[low_action]),
+            "low_viable_responses": viable[low_action],
+            "high_viable_responses": viable[high_action],
+            "viable_response_delta_high_minus_low": viable[high_action] - viable[low_action],
+        })
+    meta = {
+        "legal_allocations": len(universe),
+        "reference_samples": len(reference),
+        "low_candidates": len(low),
+        "high_candidates": len(high),
+    }
+    return pairs, meta
+
+
+def run_pressure_matched_intervention() -> dict:
+    """v0.5 causal probe: manipulate concentration while matching strategic value."""
+    game = BlottoGame()
+    pairs, meta = _match_pressure_pairs(game)
+    if not pairs:
+        raise RuntimeError("pressure matching produced no pairs")
+    n = len(pairs)
+    mean_low_value = sum(p["low_expected_payoff"] for p in pairs) / n
+    mean_high_value = sum(p["high_expected_payoff"] for p in pairs) / n
+    mean_abs_value_gap = sum(p["absolute_value_gap"] for p in pairs) / n
+    max_abs_value_gap = max(p["absolute_value_gap"] for p in pairs)
+    mean_low_conc = sum(p["low_concentration"] for p in pairs) / n
+    mean_high_conc = sum(p["high_concentration"] for p in pairs) / n
+    mean_low_viable = sum(p["low_viable_responses"] for p in pairs) / n
+    mean_high_viable = sum(p["high_viable_responses"] for p in pairs) / n
+    mean_delta = mean_high_viable - mean_low_viable
+    relative_reduction = (mean_low_viable - mean_high_viable) / mean_low_viable if mean_low_viable else None
+    pairwise_reduction_rate = sum(
+        p["high_viable_responses"] < p["low_viable_responses"] for p in pairs
+    ) / n
+    return {
+        "schema": "pcc-colonel-blotto-pressure-matched-intervention-v0.5",
+        "game": {"troops": game.troops, "values": list(game.values), "battlefields": game.battlefields},
+        "design": {
+            **meta,
+            "reference_distribution": "StaticWeightedOpponent sampled with frozen seed; independent of evaluated allocations",
+            "reference_seed": PRESSURE_MATCH_SEED,
+            "low_concentration_max": PRESSURE_LOW_MAX_CONCENTRATION,
+            "high_concentration_min": PRESSURE_HIGH_MIN_CONCENTRATION,
+            "strategic_value_match_tolerance": PRESSURE_VALUE_TOLERANCE,
+            "matching": "deterministic nearest expected-payoff match without replacement",
+            "primary_prediction": "high concentration reduces mean opponent viable responses by at least 5%",
+            "primary_threshold": PRESSURE_MIN_RELATIVE_CONSTRICTION,
+        },
+        "aggregate": {
+            "matched_pairs": n,
+            "mean_low_expected_payoff": mean_low_value,
+            "mean_high_expected_payoff": mean_high_value,
+            "mean_absolute_value_gap": mean_abs_value_gap,
+            "max_absolute_value_gap": max_abs_value_gap,
+            "mean_low_concentration": mean_low_conc,
+            "mean_high_concentration": mean_high_conc,
+            "mean_concentration_delta": mean_high_conc - mean_low_conc,
+            "mean_low_viable_responses": mean_low_viable,
+            "mean_high_viable_responses": mean_high_viable,
+            "mean_viable_response_delta_high_minus_low": mean_delta,
+            "relative_viable_response_reduction": relative_reduction,
+            "pairwise_reduction_rate": pairwise_reduction_rate,
+        },
+        "prespecified_checks": {
+            "exact_troop_budget_preserved": {"pass": all(sum(p["low_allocation"]) == game.troops and sum(p["high_allocation"]) == game.troops for p in pairs)},
+            "strategic_value_matched_within_tolerance": {"pass": max_abs_value_gap <= PRESSURE_VALUE_TOLERANCE + 1e-12, "max_gap": max_abs_value_gap, "tolerance": PRESSURE_VALUE_TOLERANCE},
+            "concentration_manipulation_succeeded": {"pass": mean_high_conc > mean_low_conc, "delta": mean_high_conc - mean_low_conc},
+            "pressure_constricts_viable_responses_by_at_least_5_percent": {
+                "pass": bool(relative_reduction is not None and relative_reduction >= PRESSURE_MIN_RELATIVE_CONSTRICTION),
+                "relative_reduction": relative_reduction,
+                "threshold": PRESSURE_MIN_RELATIVE_CONSTRICTION,
+            },
+        },
+        "pairs": pairs,
+        "claim_scope": "matched synthetic causal probe of raw allocation concentration; not a general Pressure construct claim",
+    }
+
+
+def write_pressure_matched_intervention(output_dir: str | Path) -> dict:
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    result = run_pressure_matched_intervention()
+    (out / "pressure-matched-intervention.json").write_text(json.dumps(result, indent=2) + "\n")
+    a = result["aggregate"]
+    lines = [
+        "# PCC Colonel Blotto v0.5 Pressure Matched Intervention",
+        "",
+        "This experiment holds troop budget exactly fixed and matches low- versus high-concentration allocations on expected strategic value against one frozen, policy-independent opponent distribution.",
+        "",
+        "## Prespecified checks",
+        "",
+    ]
+    for name, item in result["prespecified_checks"].items():
+        lines.append(f"- **{name}**: {'PASS' if item['pass'] else 'FAIL'}")
+    lines += [
+        "",
+        "## Aggregate result",
+        "",
+        f"- Matched pairs: **{a['matched_pairs']}**",
+        f"- Mean absolute strategic-value gap: **{a['mean_absolute_value_gap']:.6f}**",
+        f"- Mean concentration: **{a['mean_low_concentration']:.4f} -> {a['mean_high_concentration']:.4f}**",
+        f"- Mean viable responses: **{a['mean_low_viable_responses']:.2f} -> {a['mean_high_viable_responses']:.2f}**",
+        f"- Relative viable-response reduction: **{a['relative_viable_response_reduction']:.2%}**",
+        f"- Pairwise fraction with fewer viable responses under high concentration: **{a['pairwise_reduction_rate']:.2%}**",
+        "",
+        "## Interpretation guardrail",
+        "",
+        "This isolates **raw allocation concentration**, not the full engineered Pressure policy. If the primary prediction fails, concentration by itself should not be treated as a substrate-general Pressure mechanism; battlefield targeting, leverage, or value-weighted commitment may be necessary parts of the construct.",
+    ]
+    (out / "PRESSURE_MATCHED_INTERVENTION.md").write_text("\n".join(lines) + "\n")
     return result
