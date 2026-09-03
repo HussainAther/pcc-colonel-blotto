@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.9.0 - Pressure-Control boundary falsification
+
+- Restricted latent mixtures to the exact Pressure-Control edge with Chaos fixed at zero.
+- Trained only on central edge mixtures (`P` in `[0.20, 0.80]`) and evaluated OOD on the extreme P/C endpoints.
+- Explicitly removed entropy, distinct-action ratio, repeat rate, step-to-step volatility, and per-battlefield variance from the predictor set.
+- Frozen default result: OOD Pressure MAE **0.0493** vs edge-midpoint baseline **0.4250** (**88.4%** improvement), with true-vs-predicted Pressure correlation **0.9915**.
+- All four prespecified checks PASS. Pure Pressure remains the hardest endpoint, averaging about **0.888** predicted Pressure across replicates.
+- Added protocol, CLI command, frozen validation output, and three tests; full suite now contains 33 tests.
+- Claim remains synthetic separability of engineered Pressure and Control, not spontaneous PCC organization in learned or human agents.
+
 ## 0.8.0 - Observational latent-mixture OOD recovery
 
 - Added `MixedPCCAgent`, which generates behavior from fixed hidden Pressure/Control/Chaos mixture weights while withholding component selections from recovery.

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from .experiment import write_chaos_exploiter_falsification, write_control_estimator_ablation, write_control_history_destruction, write_control_regime_switching, write_pressure_leverage_intervention, write_pressure_matched_intervention, write_probe, write_observational_recovery
+from .experiment import write_chaos_exploiter_falsification, write_control_estimator_ablation, write_control_history_destruction, write_control_regime_switching, write_pressure_leverage_intervention, write_pressure_matched_intervention, write_probe, write_observational_recovery, write_pressure_control_boundary
 
 
 def main() -> None:
@@ -38,6 +38,10 @@ def main() -> None:
     recovery.add_argument("--output-dir", default="validation")
     recovery.add_argument("--rounds", type=int, default=240)
     recovery.add_argument("--seeds-per-mixture", type=int, default=4)
+    boundary = sub.add_parser("pressure-control-boundary", help="run the v0.9 low-Chaos Pressure-Control boundary falsification")
+    boundary.add_argument("--output-dir", default="validation")
+    boundary.add_argument("--rounds", type=int, default=240)
+    boundary.add_argument("--seeds-per-mixture", type=int, default=6)
     args = parser.parse_args()
     if args.command == "mechanism-probe":
         result = write_probe(args.output_dir, rounds=args.rounds, seeds=args.seeds)
@@ -70,6 +74,15 @@ def main() -> None:
         print(f"relative improvement: {a['relative_improvement_over_centroid']:.3%}")
         for axis, value in a["axis_mae"].items():
             print(f"{axis} MAE: {value:.6f}")
+        for name, item in result["prespecified_checks"].items():
+            print(f"{name}: {'PASS' if item['pass'] else 'FAIL'}")
+    elif args.command == "pressure-control-boundary":
+        result = write_pressure_control_boundary(args.output_dir, rounds=args.rounds, seeds_per_mixture=args.seeds_per_mixture)
+        a = result["aggregate"]
+        print(f"OOD Pressure MAE: {a['ood_pressure_mae']:.6f}")
+        print(f"midpoint baseline MAE: {a['edge_midpoint_baseline_mae']:.6f}")
+        print(f"relative improvement: {a['relative_improvement_over_midpoint']:.3%}")
+        print(f"Pressure correlation: {a['pressure_prediction_correlation']:.6f}")
         for name, item in result["prespecified_checks"].items():
             print(f"{name}: {'PASS' if item['pass'] else 'FAIL'}")
     elif args.command == "chaos-exploiter-falsification":

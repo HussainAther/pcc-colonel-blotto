@@ -1469,3 +1469,211 @@ def write_observational_recovery(
     ]
     (out / "OBSERVATIONAL_RECOVERY.md").write_text("\n".join(lines) + "\n")
     return result
+
+# ---------------------------------------------------------------------------
+# v0.9 Pressure-Control boundary falsification
+# ---------------------------------------------------------------------------
+
+PC_BOUNDARY_ROUNDS = 240
+PC_BOUNDARY_SEEDS_PER_MIXTURE = 6
+PC_BOUNDARY_STEP = 0.05
+PC_BOUNDARY_TRAIN_LOW = 0.20
+PC_BOUNDARY_TRAIN_HIGH = 0.80
+PC_BOUNDARY_MAX_OOD_MAE = 0.15
+PC_BOUNDARY_MIN_BASELINE_IMPROVEMENT = 0.50
+PC_BOUNDARY_MIN_CORRELATION = 0.90
+
+PC_BOUNDARY_FEATURES = [
+    "mean_payoff",
+    "win_rate",
+    "mean_concentration",
+    "mean_leverage_targeting",
+    "mean_opponent_viable_responses",
+    *[f"battlefield_{i}_mean" for i in range(5)],
+    *[f"battlefield_{i}_mean_abs_gap" for i in range(5)],
+]
+
+
+def _pc_edge_grid(step: float = PC_BOUNDARY_STEP) -> list[tuple[float, float, float]]:
+    """Pressure-Control edge with Chaos fixed exactly at zero."""
+    n = int(round(1.0 / step))
+    return [(i / n, 1.0 - i / n, 0.0) for i in range(n + 1)]
+
+
+def _pearson(xs: list[float], ys: list[float]) -> float:
+    if len(xs) != len(ys) or not xs:
+        raise ValueError("correlation inputs must be nonempty and equal length")
+    mx = sum(xs) / len(xs)
+    my = sum(ys) / len(ys)
+    dx = [x - mx for x in xs]
+    dy = [y - my for y in ys]
+    denom = math.sqrt(sum(x * x for x in dx) * sum(y * y for y in dy))
+    return 0.0 if denom <= 1e-12 else sum(x * y for x, y in zip(dx, dy)) / denom
+
+
+def _restricted_pc_features(features: dict[str, float]) -> dict[str, float]:
+    """Mechanism-facing public observables with entropy/diversity shortcuts removed."""
+    return {name: features[name] for name in PC_BOUNDARY_FEATURES}
+
+
+def _run_pc_boundary_trajectory(
+    weights: tuple[float, float, float], *, rounds: int, seed: int, game: BlottoGame
+) -> dict:
+    row = _run_mixed_trajectory(weights, rounds=rounds, seed=seed, game=game)
+    row["features"] = _restricted_pc_features(row["features"])
+    return row
+
+
+def run_pressure_control_boundary(
+    rounds: int = PC_BOUNDARY_ROUNDS,
+    seeds_per_mixture: int = PC_BOUNDARY_SEEDS_PER_MIXTURE,
+) -> dict:
+    """OOD recovery on the P<->C edge with Chaos fixed to zero and entropy features forbidden."""
+    game = BlottoGame()
+    mixtures = _pc_edge_grid()
+    train_weights = [w for w in mixtures if PC_BOUNDARY_TRAIN_LOW <= w[0] <= PC_BOUNDARY_TRAIN_HIGH]
+    ood_weights = [w for w in mixtures if w not in train_weights]
+
+    train_rows: list[dict] = []
+    ood_rows: list[dict] = []
+    for mix_index, weights in enumerate(mixtures):
+        target = train_rows if weights in train_weights else ood_rows
+        for rep in range(seeds_per_mixture):
+            seed = 2_000_003 + mix_index * 211 + rep
+            target.append(_run_pc_boundary_trajectory(weights, rounds=rounds, seed=seed, game=game))
+
+    feature_names = list(PC_BOUNDARY_FEATURES)
+    # Only one scalar needs recovery on the edge: P; C=1-P and Chaos=0.
+    model = _fit_ridge(train_rows, feature_names, 0, RECOVERY_RIDGE)
+    predictions: list[dict] = []
+    errors: list[float] = []
+    baseline_errors: list[float] = []
+    true_p: list[float] = []
+    pred_p: list[float] = []
+
+    for row in ood_rows:
+        raw_p = _predict_ridge(model, row["features"], feature_names)
+        p = min(1.0, max(0.0, raw_p))
+        true = row["weights"]
+        err = abs(p - true[0])
+        errors.append(err)
+        baseline_errors.append(abs(0.5 - true[0]))
+        true_p.append(true[0])
+        pred_p.append(p)
+        predictions.append({
+            "true_weights": true,
+            "predicted_weights": [p, 1.0 - p, 0.0],
+            "pressure_abs_error": err,
+        })
+
+    mae = sum(errors) / len(errors)
+    baseline_mae = sum(baseline_errors) / len(baseline_errors)
+    improvement = 1.0 - mae / baseline_mae
+    corr = _pearson(true_p, pred_p)
+    checks = {
+        "ood_pressure_mae_at_most_0_15": {
+            "pass": mae <= PC_BOUNDARY_MAX_OOD_MAE,
+            "value": mae,
+            "threshold": PC_BOUNDARY_MAX_OOD_MAE,
+        },
+        "beats_edge_midpoint_baseline_by_at_least_50_percent": {
+            "pass": improvement >= PC_BOUNDARY_MIN_BASELINE_IMPROVEMENT,
+            "relative_improvement": improvement,
+            "threshold": PC_BOUNDARY_MIN_BASELINE_IMPROVEMENT,
+        },
+        "pressure_ordering_correlation_at_least_0_90": {
+            "pass": corr >= PC_BOUNDARY_MIN_CORRELATION,
+            "value": corr,
+            "threshold": PC_BOUNDARY_MIN_CORRELATION,
+        },
+        "chaos_is_exactly_zero_everywhere": {
+            "pass": all(abs(w[2]) < 1e-12 for w in mixtures),
+            "value": 0.0,
+            "threshold": 0.0,
+        },
+    }
+    forbidden = [
+        "allocation_entropy",
+        "distinct_action_ratio",
+        "repeat_rate",
+        "mean_step_l1",
+        *[f"battlefield_{i}_variance" for i in range(game.battlefields)],
+    ]
+    return {
+        "schema": "pcc-colonel-blotto-pressure-control-boundary-v0.9",
+        "game": {"troops": game.troops, "values": list(game.values), "battlefields": game.battlefields},
+        "design": {
+            "rounds_per_trajectory": rounds,
+            "seeds_per_mixture": seeds_per_mixture,
+            "edge_step": PC_BOUNDARY_STEP,
+            "chaos_weight": 0.0,
+            "train_pressure_range": [PC_BOUNDARY_TRAIN_LOW, PC_BOUNDARY_TRAIN_HIGH],
+            "ood_rule": f"pressure < {PC_BOUNDARY_TRAIN_LOW} or pressure > {PC_BOUNDARY_TRAIN_HIGH}",
+            "train_mixtures": len(train_weights),
+            "ood_mixtures": len(ood_weights),
+            "train_rows": len(train_rows),
+            "ood_rows": len(ood_rows),
+            "recovery_model": f"standardized ridge pressure regression (lambda={RECOVERY_RIDGE}); control=1-pressure",
+            "feature_names": feature_names,
+            "forbidden_entropy_or_diversity_features": forbidden,
+            "forbidden_predictors": ["latent weights", "component-selection labels", "agent internals", "RNG seeds", "opponent-family labels"],
+        },
+        "aggregate": {
+            "ood_pressure_mae": mae,
+            "edge_midpoint_baseline_mae": baseline_mae,
+            "relative_improvement_over_midpoint": improvement,
+            "pressure_prediction_correlation": corr,
+            "all_primary_checks_pass": all(v["pass"] for v in checks.values()),
+        },
+        "prespecified_checks": checks,
+        "predictions": predictions,
+        "claim_scope": "synthetic P-C boundary OOD recovery with Chaos fixed to zero and entropy/diversity features excluded; not recovery from human or independently learned agents",
+    }
+
+
+def write_pressure_control_boundary(
+    output_dir: str | Path,
+    rounds: int = PC_BOUNDARY_ROUNDS,
+    seeds_per_mixture: int = PC_BOUNDARY_SEEDS_PER_MIXTURE,
+) -> dict:
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    result = run_pressure_control_boundary(rounds=rounds, seeds_per_mixture=seeds_per_mixture)
+    (out / "pressure-control-boundary.json").write_text(json.dumps(result, indent=2) + "\n")
+    a = result["aggregate"]
+    lines = [
+        "# PCC Colonel Blotto v0.9 Pressure-Control Boundary Falsification",
+        "",
+        "Chaos is fixed exactly at zero. Recovery is restricted to the Pressure-Control edge and broad entropy/diversity shortcuts are excluded from the predictor set.",
+        "",
+        "## Frozen design",
+        "",
+        f"- edge spacing: **{PC_BOUNDARY_STEP:.2f}**",
+        f"- training Pressure range: **[{PC_BOUNDARY_TRAIN_LOW:.2f}, {PC_BOUNDARY_TRAIN_HIGH:.2f}]**",
+        f"- OOD mixtures: **{result['design']['ood_mixtures']}** extreme edge points",
+        f"- trajectories: **{result['design']['train_rows']} train / {result['design']['ood_rows']} OOD**",
+        f"- Chaos weight: **0.0** everywhere",
+        "- entropy/diversity features: **forbidden**",
+        "",
+        "## OOD boundary recovery",
+        "",
+        f"- Pressure MAE: **{a['ood_pressure_mae']:.4f}**",
+        f"- edge-midpoint baseline MAE: **{a['edge_midpoint_baseline_mae']:.4f}**",
+        f"- relative improvement: **{a['relative_improvement_over_midpoint']:.1%}**",
+        f"- true-vs-predicted Pressure correlation: **{a['pressure_prediction_correlation']:.4f}**",
+        "",
+        "## Prespecified checks",
+        "",
+    ]
+    for name, item in result["prespecified_checks"].items():
+        lines.append(f"- **{name}**: {'PASS' if item['pass'] else 'FAIL'}")
+    lines += [
+        "",
+        f"Overall primary rule: **{'PASS' if a['all_primary_checks_pass'] else 'FAIL'}**",
+        "",
+        "## Interpretation guardrail",
+        "",
+        "A pass supports separability of engineered Pressure versus Control behavior at the low-Chaos boundary using mechanism-facing public observables rather than broad entropy differences. It does not establish spontaneous PCC organization in independently learned agents.",
+    ]
+    (out / "PRESSURE_CONTROL_BOUNDARY.md").write_text("\n".join(lines) + "\n")
+    return result

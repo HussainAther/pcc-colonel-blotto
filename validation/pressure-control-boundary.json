@@ -1,0 +1,721 @@
+{
+  "schema": "pcc-colonel-blotto-pressure-control-boundary-v0.9",
+  "game": {
+    "troops": 10,
+    "values": [
+      1.0,
+      1.5,
+      2.0,
+      2.5,
+      3.0
+    ],
+    "battlefields": 5
+  },
+  "design": {
+    "rounds_per_trajectory": 240,
+    "seeds_per_mixture": 6,
+    "edge_step": 0.05,
+    "chaos_weight": 0.0,
+    "train_pressure_range": [
+      0.2,
+      0.8
+    ],
+    "ood_rule": "pressure < 0.2 or pressure > 0.8",
+    "train_mixtures": 13,
+    "ood_mixtures": 8,
+    "train_rows": 78,
+    "ood_rows": 48,
+    "recovery_model": "standardized ridge pressure regression (lambda=0.25); control=1-pressure",
+    "feature_names": [
+      "mean_payoff",
+      "win_rate",
+      "mean_concentration",
+      "mean_leverage_targeting",
+      "mean_opponent_viable_responses",
+      "battlefield_0_mean",
+      "battlefield_1_mean",
+      "battlefield_2_mean",
+      "battlefield_3_mean",
+      "battlefield_4_mean",
+      "battlefield_0_mean_abs_gap",
+      "battlefield_1_mean_abs_gap",
+      "battlefield_2_mean_abs_gap",
+      "battlefield_3_mean_abs_gap",
+      "battlefield_4_mean_abs_gap"
+    ],
+    "forbidden_entropy_or_diversity_features": [
+      "allocation_entropy",
+      "distinct_action_ratio",
+      "repeat_rate",
+      "mean_step_l1",
+      "battlefield_0_variance",
+      "battlefield_1_variance",
+      "battlefield_2_variance",
+      "battlefield_3_variance",
+      "battlefield_4_variance"
+    ],
+    "forbidden_predictors": [
+      "latent weights",
+      "component-selection labels",
+      "agent internals",
+      "RNG seeds",
+      "opponent-family labels"
+    ]
+  },
+  "aggregate": {
+    "ood_pressure_mae": 0.049332682640222274,
+    "edge_midpoint_baseline_mae": 0.425,
+    "relative_improvement_over_midpoint": 0.8839230996700652,
+    "pressure_prediction_correlation": 0.9915212460815244,
+    "all_primary_checks_pass": true
+  },
+  "prespecified_checks": {
+    "ood_pressure_mae_at_most_0_15": {
+      "pass": true,
+      "value": 0.049332682640222274,
+      "threshold": 0.15
+    },
+    "beats_edge_midpoint_baseline_by_at_least_50_percent": {
+      "pass": true,
+      "relative_improvement": 0.8839230996700652,
+      "threshold": 0.5
+    },
+    "pressure_ordering_correlation_at_least_0_90": {
+      "pass": true,
+      "value": 0.9915212460815244,
+      "threshold": 0.9
+    },
+    "chaos_is_exactly_zero_everywhere": {
+      "pass": true,
+      "value": 0.0,
+      "threshold": 0.0
+    }
+  },
+  "predictions": [
+    {
+      "true_weights": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "predicted_weights": [
+        0.03270541778552487,
+        0.9672945822144752,
+        0.0
+      ],
+      "pressure_abs_error": 0.03270541778552487
+    },
+    {
+      "true_weights": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "predicted_weights": [
+        0.033985542661843664,
+        0.9660144573381564,
+        0.0
+      ],
+      "pressure_abs_error": 0.033985542661843664
+    },
+    {
+      "true_weights": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "predicted_weights": [
+        0.06209932267829079,
+        0.9379006773217092,
+        0.0
+      ],
+      "pressure_abs_error": 0.06209932267829079
+    },
+    {
+      "true_weights": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "predicted_weights": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "pressure_abs_error": 0.0
+    },
+    {
+      "true_weights": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "predicted_weights": [
+        0.05044954459803855,
+        0.9495504554019615,
+        0.0
+      ],
+      "pressure_abs_error": 0.05044954459803855
+    },
+    {
+      "true_weights": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "predicted_weights": [
+        0.006631465148951106,
+        0.9933685348510489,
+        0.0
+      ],
+      "pressure_abs_error": 0.006631465148951106
+    },
+    {
+      "true_weights": [
+        0.05,
+        0.95,
+        0.0
+      ],
+      "predicted_weights": [
+        0.0994312735503023,
+        0.9005687264496977,
+        0.0
+      ],
+      "pressure_abs_error": 0.0494312735503023
+    },
+    {
+      "true_weights": [
+        0.05,
+        0.95,
+        0.0
+      ],
+      "predicted_weights": [
+        0.09208639213247694,
+        0.9079136078675231,
+        0.0
+      ],
+      "pressure_abs_error": 0.04208639213247693
+    },
+    {
+      "true_weights": [
+        0.05,
+        0.95,
+        0.0
+      ],
+      "predicted_weights": [
+        0.09425566571428251,
+        0.9057443342857174,
+        0.0
+      ],
+      "pressure_abs_error": 0.04425566571428251
+    },
+    {
+      "true_weights": [
+        0.05,
+        0.95,
+        0.0
+      ],
+      "predicted_weights": [
+        0.06630967064830462,
+        0.9336903293516954,
+        0.0
+      ],
+      "pressure_abs_error": 0.016309670648304617
+    },
+    {
+      "true_weights": [
+        0.05,
+        0.95,
+        0.0
+      ],
+      "predicted_weights": [
+        0.06643740688635426,
+        0.9335625931136458,
+        0.0
+      ],
+      "pressure_abs_error": 0.016437406886354256
+    },
+    {
+      "true_weights": [
+        0.05,
+        0.95,
+        0.0
+      ],
+      "predicted_weights": [
+        0.07811916350419162,
+        0.9218808364958084,
+        0.0
+      ],
+      "pressure_abs_error": 0.02811916350419162
+    },
+    {
+      "true_weights": [
+        0.1,
+        0.9,
+        0.0
+      ],
+      "predicted_weights": [
+        0.1861108737569596,
+        0.8138891262430404,
+        0.0
+      ],
+      "pressure_abs_error": 0.08611087375695958
+    },
+    {
+      "true_weights": [
+        0.1,
+        0.9,
+        0.0
+      ],
+      "predicted_weights": [
+        0.1350993800617576,
+        0.8649006199382424,
+        0.0
+      ],
+      "pressure_abs_error": 0.035099380061757585
+    },
+    {
+      "true_weights": [
+        0.1,
+        0.9,
+        0.0
+      ],
+      "predicted_weights": [
+        0.10933714973445291,
+        0.8906628502655471,
+        0.0
+      ],
+      "pressure_abs_error": 0.009337149734452904
+    },
+    {
+      "true_weights": [
+        0.1,
+        0.9,
+        0.0
+      ],
+      "predicted_weights": [
+        0.10179504846252459,
+        0.8982049515374754,
+        0.0
+      ],
+      "pressure_abs_error": 0.0017950484625245816
+    },
+    {
+      "true_weights": [
+        0.1,
+        0.9,
+        0.0
+      ],
+      "predicted_weights": [
+        0.10465154028284597,
+        0.895348459717154,
+        0.0
+      ],
+      "pressure_abs_error": 0.0046515402828459645
+    },
+    {
+      "true_weights": [
+        0.1,
+        0.9,
+        0.0
+      ],
+      "predicted_weights": [
+        0.14951003609787003,
+        0.8504899639021299,
+        0.0
+      ],
+      "pressure_abs_error": 0.049510036097870025
+    },
+    {
+      "true_weights": [
+        0.15,
+        0.85,
+        0.0
+      ],
+      "predicted_weights": [
+        0.13532829779476288,
+        0.8646717022052371,
+        0.0
+      ],
+      "pressure_abs_error": 0.014671702205237114
+    },
+    {
+      "true_weights": [
+        0.15,
+        0.85,
+        0.0
+      ],
+      "predicted_weights": [
+        0.18434807701815192,
+        0.8156519229818481,
+        0.0
+      ],
+      "pressure_abs_error": 0.03434807701815193
+    },
+    {
+      "true_weights": [
+        0.15,
+        0.85,
+        0.0
+      ],
+      "predicted_weights": [
+        0.17471555513363762,
+        0.8252844448663623,
+        0.0
+      ],
+      "pressure_abs_error": 0.02471555513363763
+    },
+    {
+      "true_weights": [
+        0.15,
+        0.85,
+        0.0
+      ],
+      "predicted_weights": [
+        0.1496542004712442,
+        0.8503457995287558,
+        0.0
+      ],
+      "pressure_abs_error": 0.0003457995287557969
+    },
+    {
+      "true_weights": [
+        0.15,
+        0.85,
+        0.0
+      ],
+      "predicted_weights": [
+        0.13292809413192072,
+        0.8670719058680793,
+        0.0
+      ],
+      "pressure_abs_error": 0.017071905868079273
+    },
+    {
+      "true_weights": [
+        0.15,
+        0.85,
+        0.0
+      ],
+      "predicted_weights": [
+        0.1470987737411428,
+        0.8529012262588572,
+        0.0
+      ],
+      "pressure_abs_error": 0.0029012262588571924
+    },
+    {
+      "true_weights": [
+        0.85,
+        0.15000000000000002,
+        0.0
+      ],
+      "predicted_weights": [
+        0.8491817439859747,
+        0.15081825601402532,
+        0.0
+      ],
+      "pressure_abs_error": 0.0008182560140252981
+    },
+    {
+      "true_weights": [
+        0.85,
+        0.15000000000000002,
+        0.0
+      ],
+      "predicted_weights": [
+        0.8238495582825822,
+        0.17615044171741778,
+        0.0
+      ],
+      "pressure_abs_error": 0.02615044171741776
+    },
+    {
+      "true_weights": [
+        0.85,
+        0.15000000000000002,
+        0.0
+      ],
+      "predicted_weights": [
+        0.8360111725332434,
+        0.16398882746675658,
+        0.0
+      ],
+      "pressure_abs_error": 0.01398882746675656
+    },
+    {
+      "true_weights": [
+        0.85,
+        0.15000000000000002,
+        0.0
+      ],
+      "predicted_weights": [
+        0.7843818098646915,
+        0.21561819013530847,
+        0.0
+      ],
+      "pressure_abs_error": 0.06561819013530845
+    },
+    {
+      "true_weights": [
+        0.85,
+        0.15000000000000002,
+        0.0
+      ],
+      "predicted_weights": [
+        0.8827701962659926,
+        0.11722980373400738,
+        0.0
+      ],
+      "pressure_abs_error": 0.032770196265992646
+    },
+    {
+      "true_weights": [
+        0.85,
+        0.15000000000000002,
+        0.0
+      ],
+      "predicted_weights": [
+        0.7945880085207667,
+        0.20541199147923328,
+        0.0
+      ],
+      "pressure_abs_error": 0.05541199147923326
+    },
+    {
+      "true_weights": [
+        0.9,
+        0.09999999999999998,
+        0.0
+      ],
+      "predicted_weights": [
+        0.8085824919611102,
+        0.1914175080388898,
+        0.0
+      ],
+      "pressure_abs_error": 0.09141750803888982
+    },
+    {
+      "true_weights": [
+        0.9,
+        0.09999999999999998,
+        0.0
+      ],
+      "predicted_weights": [
+        0.8689182870339067,
+        0.13108171296609328,
+        0.0
+      ],
+      "pressure_abs_error": 0.0310817129660933
+    },
+    {
+      "true_weights": [
+        0.9,
+        0.09999999999999998,
+        0.0
+      ],
+      "predicted_weights": [
+        0.7911626218777988,
+        0.20883737812220116,
+        0.0
+      ],
+      "pressure_abs_error": 0.10883737812220118
+    },
+    {
+      "true_weights": [
+        0.9,
+        0.09999999999999998,
+        0.0
+      ],
+      "predicted_weights": [
+        0.8559723394482465,
+        0.14402766055175353,
+        0.0
+      ],
+      "pressure_abs_error": 0.044027660551753556
+    },
+    {
+      "true_weights": [
+        0.9,
+        0.09999999999999998,
+        0.0
+      ],
+      "predicted_weights": [
+        0.8156278788486874,
+        0.18437212115131263,
+        0.0
+      ],
+      "pressure_abs_error": 0.08437212115131265
+    },
+    {
+      "true_weights": [
+        0.9,
+        0.09999999999999998,
+        0.0
+      ],
+      "predicted_weights": [
+        0.8718392439122684,
+        0.1281607560877316,
+        0.0
+      ],
+      "pressure_abs_error": 0.02816075608773161
+    },
+    {
+      "true_weights": [
+        0.95,
+        0.050000000000000044,
+        0.0
+      ],
+      "predicted_weights": [
+        0.9364024570578015,
+        0.06359754294219855,
+        0.0
+      ],
+      "pressure_abs_error": 0.013597542942198504
+    },
+    {
+      "true_weights": [
+        0.95,
+        0.050000000000000044,
+        0.0
+      ],
+      "predicted_weights": [
+        0.8420622375133465,
+        0.15793776248665348,
+        0.0
+      ],
+      "pressure_abs_error": 0.10793776248665343
+    },
+    {
+      "true_weights": [
+        0.95,
+        0.050000000000000044,
+        0.0
+      ],
+      "predicted_weights": [
+        0.9125862170867477,
+        0.0874137829132523,
+        0.0
+      ],
+      "pressure_abs_error": 0.03741378291325226
+    },
+    {
+      "true_weights": [
+        0.95,
+        0.050000000000000044,
+        0.0
+      ],
+      "predicted_weights": [
+        0.8176170461683469,
+        0.18238295383165315,
+        0.0
+      ],
+      "pressure_abs_error": 0.1323829538316531
+    },
+    {
+      "true_weights": [
+        0.95,
+        0.050000000000000044,
+        0.0
+      ],
+      "predicted_weights": [
+        0.9208465056660552,
+        0.07915349433394481,
+        0.0
+      ],
+      "pressure_abs_error": 0.029153494333944763
+    },
+    {
+      "true_weights": [
+        0.95,
+        0.050000000000000044,
+        0.0
+      ],
+      "predicted_weights": [
+        0.8221879769089987,
+        0.1778120230910013,
+        0.0
+      ],
+      "pressure_abs_error": 0.12781202309100126
+    },
+    {
+      "true_weights": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "predicted_weights": [
+        0.7865274502536257,
+        0.2134725497463743,
+        0.0
+      ],
+      "pressure_abs_error": 0.2134725497463743
+    },
+    {
+      "true_weights": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "predicted_weights": [
+        0.9968044762952871,
+        0.003195523704712877,
+        0.0
+      ],
+      "pressure_abs_error": 0.003195523704712877
+    },
+    {
+      "true_weights": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "predicted_weights": [
+        0.7848474539484114,
+        0.21515254605158862,
+        0.0
+      ],
+      "pressure_abs_error": 0.21515254605158862
+    },
+    {
+      "true_weights": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "predicted_weights": [
+        0.9848229825172754,
+        0.015177017482724597,
+        0.0
+      ],
+      "pressure_abs_error": 0.015177017482724597
+    },
+    {
+      "true_weights": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "predicted_weights": [
+        0.7862009586303091,
+        0.21379904136969086,
+        0.0
+      ],
+      "pressure_abs_error": 0.21379904136969086
+    },
+    {
+      "true_weights": [
+        1.0,
+        0.0,
+        0.0
+      ],
+      "predicted_weights": [
+        0.9868496709375323,
+        0.013150329062467714,
+        0.0
+      ],
+      "pressure_abs_error": 0.013150329062467714
+    }
+  ],
+  "claim_scope": "synthetic P-C boundary OOD recovery with Chaos fixed to zero and entropy/diversity features excluded; not recovery from human or independently learned agents"
+}

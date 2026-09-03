@@ -225,3 +225,30 @@ Frozen result:
 This supports synthetic observational recoverability of the engineered latent PCC mixture under a genuinely held-out axis-dominant weight region. It does **not** establish recovery from human Blotto play, nor does it prove that learned/natural agents spontaneously factor into PCC components.
 
 See `docs/OBSERVATIONAL_RECOVERY_PROTOCOL.md` and `validation/OBSERVATIONAL_RECOVERY.md`.
+
+## v0.9 Pressure-Control boundary falsification
+
+v0.9 stress-tests the hardest v0.8 confusion directly. Hidden mixtures are restricted to the exact `Pressure <-> Control` edge with **Chaos fixed to 0.0**, and the recovery model is denied broad entropy/diversity features (`allocation_entropy`, distinct-action ratio, repeat rate, step-to-step L1 change, and per-battlefield variance).
+
+The default OOD split trains only on Pressure weights in `[0.20, 0.80]` and tests the extreme edge points outside that interval.
+
+Frozen default result:
+
+- OOD Pressure MAE: **0.0493**
+- edge-midpoint baseline MAE: **0.4250**
+- relative improvement: **88.4%**
+- true-vs-predicted Pressure correlation: **0.9915**
+- all prespecified checks: **PASS**
+
+This supports Pressure-vs-Control separability from mechanism-facing public observables rather than broad randomness differences. Extreme Pressure remains the harder endpoint: pure Pressure averages about **0.888** predicted Pressure across the frozen replicates.
+
+Run it with:
+
+```bash
+python -m pcc_colonel_blotto pressure-control-boundary \
+  --output-dir validation \
+  --rounds 240 \
+  --seeds-per-mixture 6
+```
+
+See `docs/PRESSURE_CONTROL_BOUNDARY_PROTOCOL.md` and `validation/PRESSURE_CONTROL_BOUNDARY.md`.
