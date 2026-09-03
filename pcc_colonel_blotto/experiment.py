@@ -1207,3 +1207,265 @@ def write_chaos_exploiter_falsification(
     ]
     (out / "CHAOS_EXPLOITER_FALSIFICATION.md").write_text("\n".join(lines) + "\n")
     return result
+
+# ---------------------------------------------------------------------------
+# v0.8 observational latent-mixture recovery
+# ---------------------------------------------------------------------------
+
+RECOVERY_ROUNDS = 240
+RECOVERY_SEEDS_PER_MIXTURE = 4
+RECOVERY_OOD_DOMINANCE = 0.75
+RECOVERY_RIDGE = 0.25
+RECOVERY_MAX_OOD_MAE = 0.15
+RECOVERY_MIN_BASELINE_IMPROVEMENT = 0.25
+
+
+def _simplex_grid(step: int = 10) -> list[tuple[float, float, float]]:
+    """Deterministic simplex lattice with coordinates in multiples of 1/step."""
+    return [(i / step, j / step, (step - i - j) / step)
+            for i in range(step + 1) for j in range(step + 1 - i)]
+
+
+def _trajectory_observables(actions: list[Allocation], opponents: list[Allocation], payoffs: list[float], game: BlottoGame) -> dict[str, float]:
+    n = len(actions)
+    if n == 0:
+        raise ValueError("trajectory must contain at least one action")
+    feats: dict[str, float] = {
+        "mean_payoff": sum(payoffs) / n,
+        "win_rate": sum(1 for x in payoffs if x > 0) / n,
+        "allocation_entropy": entropy(actions),
+        "distinct_action_ratio": len(set(actions)) / n,
+        "mean_concentration": sum(concentration(a) for a in actions) / n,
+        "mean_leverage_targeting": sum(leverage_targeting(game, a) for a in actions) / n,
+        "mean_opponent_viable_responses": sum(game.viable_responses(a) for a in actions) / n,
+    }
+    if n > 1:
+        feats["mean_step_l1"] = sum(
+            sum(abs(actions[t][i] - actions[t - 1][i]) for i in range(game.battlefields))
+            for t in range(1, n)
+        ) / (n - 1)
+        feats["repeat_rate"] = sum(actions[t] == actions[t - 1] for t in range(1, n)) / (n - 1)
+    else:
+        feats["mean_step_l1"] = 0.0
+        feats["repeat_rate"] = 0.0
+    for i in range(game.battlefields):
+        vals = [a[i] for a in actions]
+        mean = sum(vals) / n
+        feats[f"battlefield_{i}_mean"] = mean
+        feats[f"battlefield_{i}_variance"] = sum((x - mean) ** 2 for x in vals) / n
+        # Public-response alignment: absolute allocation mismatch to the observed
+        # opponent on the same battlefield. No private state or mechanism labels.
+        feats[f"battlefield_{i}_mean_abs_gap"] = sum(abs(actions[t][i] - opponents[t][i]) for t in range(n)) / n
+    return feats
+
+
+def _run_mixed_trajectory(weights: tuple[float, float, float], *, rounds: int, seed: int, game: BlottoGame) -> dict:
+    from .agents import MixedPCCAgent
+    agent = MixedPCCAgent(*weights)
+    # Use both stationary and adaptive public environments across seeds without
+    # exposing opponent-family identity to the recovery model.
+    opponent = StaticWeightedOpponent() if seed % 2 == 0 else AdaptiveCounterOpponent()
+    rng_a = random.Random(seed + 810_000_007)
+    rng_b = random.Random(seed + 910_000_009)
+    a_hist: list[Allocation] = []
+    b_hist: list[Allocation] = []
+    payoffs: list[float] = []
+    for _ in range(rounds):
+        a = agent.act(game, b_hist, rng_a)
+        b = opponent.act(game, a_hist, rng_b)
+        a_hist.append(a)
+        b_hist.append(b)
+        payoffs.append(game.payoff(a, b))
+    return {
+        "weights": list(weights),
+        "features": _trajectory_observables(a_hist, b_hist, payoffs, game),
+    }
+
+
+def _solve_linear_system(a: list[list[float]], b: list[float]) -> list[float]:
+    """Small deterministic Gauss-Jordan solver with partial pivoting."""
+    n = len(b)
+    aug = [list(a[i]) + [b[i]] for i in range(n)]
+    for col in range(n):
+        pivot = max(range(col, n), key=lambda r: abs(aug[r][col]))
+        if abs(aug[pivot][col]) < 1e-12:
+            raise ValueError("singular linear system")
+        aug[col], aug[pivot] = aug[pivot], aug[col]
+        scale = aug[col][col]
+        aug[col] = [x / scale for x in aug[col]]
+        for r in range(n):
+            if r == col:
+                continue
+            factor = aug[r][col]
+            if factor:
+                aug[r] = [aug[r][c] - factor * aug[col][c] for c in range(n + 1)]
+    return [aug[i][-1] for i in range(n)]
+
+
+def _fit_ridge(rows: list[dict], feature_names: list[str], target_idx: int, ridge: float) -> dict:
+    means = {f: sum(r["features"][f] for r in rows) / len(rows) for f in feature_names}
+    scales: dict[str, float] = {}
+    for f in feature_names:
+        var = sum((r["features"][f] - means[f]) ** 2 for r in rows) / len(rows)
+        scales[f] = math.sqrt(var) if var > 1e-12 else 1.0
+    x = [[1.0] + [(r["features"][f] - means[f]) / scales[f] for f in feature_names] for r in rows]
+    y = [r["weights"][target_idx] for r in rows]
+    p = len(feature_names) + 1
+    xtx = [[0.0] * p for _ in range(p)]
+    xty = [0.0] * p
+    for row, yy in zip(x, y):
+        for i in range(p):
+            xty[i] += row[i] * yy
+            for j in range(p):
+                xtx[i][j] += row[i] * row[j]
+    for i in range(1, p):  # do not penalize intercept
+        xtx[i][i] += ridge
+    coef = _solve_linear_system(xtx, xty)
+    return {"means": means, "scales": scales, "coef": coef}
+
+
+def _predict_ridge(model: dict, features: dict[str, float], feature_names: list[str]) -> float:
+    x = [1.0] + [(features[f] - model["means"][f]) / model["scales"][f] for f in feature_names]
+    return sum(c * v for c, v in zip(model["coef"], x))
+
+
+def _project_simplex(v: list[float]) -> list[float]:
+    """Euclidean projection onto the 3-simplex."""
+    u = sorted(v, reverse=True)
+    cssv = 0.0
+    rho = 0
+    for j, uj in enumerate(u, 1):
+        cssv += uj
+        if uj + (1.0 - cssv) / j > 0:
+            rho = j
+    theta = (sum(u[:rho]) - 1.0) / rho
+    return [max(x - theta, 0.0) for x in v]
+
+
+def run_observational_recovery(
+    rounds: int = RECOVERY_ROUNDS,
+    seeds_per_mixture: int = RECOVERY_SEEDS_PER_MIXTURE,
+) -> dict:
+    """Recover hidden PCC mixture weights from trajectory observables OOD."""
+    game = BlottoGame()
+    mixtures = _simplex_grid(10)
+    train_weights = [w for w in mixtures if max(w) < RECOVERY_OOD_DOMINANCE]
+    ood_weights = [w for w in mixtures if max(w) >= RECOVERY_OOD_DOMINANCE]
+    train_rows: list[dict] = []
+    ood_rows: list[dict] = []
+    for mix_index, weights in enumerate(mixtures):
+        target = ood_rows if weights in ood_weights else train_rows
+        for rep in range(seeds_per_mixture):
+            seed = mix_index * 101 + rep
+            target.append(_run_mixed_trajectory(weights, rounds=rounds, seed=seed, game=game))
+    feature_names = sorted(train_rows[0]["features"])
+    models = [_fit_ridge(train_rows, feature_names, k, RECOVERY_RIDGE) for k in range(3)]
+    predictions: list[dict] = []
+    abs_errors = [[], [], []]
+    baseline_errors = [[], [], []]
+    for row in ood_rows:
+        raw = [_predict_ridge(m, row["features"], feature_names) for m in models]
+        pred = _project_simplex(raw)
+        true = row["weights"]
+        for k in range(3):
+            abs_errors[k].append(abs(pred[k] - true[k]))
+            baseline_errors[k].append(abs((1.0 / 3.0) - true[k]))
+        predictions.append({"true_weights": true, "predicted_weights": pred})
+    axis_names = ["pressure", "control", "chaos"]
+    axis_mae = {axis_names[k]: sum(abs_errors[k]) / len(abs_errors[k]) for k in range(3)}
+    axis_baseline_mae = {axis_names[k]: sum(baseline_errors[k]) / len(baseline_errors[k]) for k in range(3)}
+    overall_mae = sum(sum(x) for x in abs_errors) / (3 * len(ood_rows))
+    baseline_mae = sum(sum(x) for x in baseline_errors) / (3 * len(ood_rows))
+    improvement = 1.0 - overall_mae / baseline_mae
+    checks = {
+        "ood_overall_mae_at_most_0_15": {
+            "pass": overall_mae <= RECOVERY_MAX_OOD_MAE,
+            "value": overall_mae,
+            "threshold": RECOVERY_MAX_OOD_MAE,
+        },
+        "beats_uniform_centroid_baseline_by_at_least_25_percent": {
+            "pass": improvement >= RECOVERY_MIN_BASELINE_IMPROVEMENT,
+            "relative_improvement": improvement,
+            "threshold": RECOVERY_MIN_BASELINE_IMPROVEMENT,
+        },
+        "all_three_axes_beat_centroid_baseline": {
+            "pass": all(axis_mae[a] < axis_baseline_mae[a] for a in axis_names),
+            "axis_mae": axis_mae,
+            "axis_baseline_mae": axis_baseline_mae,
+        },
+    }
+    return {
+        "schema": "pcc-colonel-blotto-observational-recovery-v0.8",
+        "game": {"troops": game.troops, "values": list(game.values), "battlefields": game.battlefields},
+        "design": {
+            "rounds_per_trajectory": rounds,
+            "seeds_per_mixture": seeds_per_mixture,
+            "simplex_grid_step": 0.1,
+            "train_mixtures": len(train_weights),
+            "ood_mixtures": len(ood_weights),
+            "train_rows": len(train_rows),
+            "ood_rows": len(ood_rows),
+            "ood_rule": f"max latent axis weight >= {RECOVERY_OOD_DOMINANCE}",
+            "recovery_model": f"three standardized ridge regressions (lambda={RECOVERY_RIDGE}) + simplex projection",
+            "feature_names": feature_names,
+            "forbidden_predictors": ["latent weights", "component-selection labels", "agent internals", "RNG seeds", "opponent-family labels"],
+        },
+        "aggregate": {
+            "ood_overall_mae": overall_mae,
+            "centroid_baseline_mae": baseline_mae,
+            "relative_improvement_over_centroid": improvement,
+            "axis_mae": axis_mae,
+            "axis_baseline_mae": axis_baseline_mae,
+            "all_primary_checks_pass": all(v["pass"] for v in checks.values()),
+        },
+        "prespecified_checks": checks,
+        "predictions": predictions,
+        "claim_scope": "synthetic observational OOD recovery of latent engineered PCC mixtures; not recovery from human play",
+    }
+
+
+def write_observational_recovery(
+    output_dir: str | Path,
+    rounds: int = RECOVERY_ROUNDS,
+    seeds_per_mixture: int = RECOVERY_SEEDS_PER_MIXTURE,
+) -> dict:
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    result = run_observational_recovery(rounds=rounds, seeds_per_mixture=seeds_per_mixture)
+    (out / "observational-recovery.json").write_text(json.dumps(result, indent=2) + "\n")
+    a = result["aggregate"]
+    lines = [
+        "# PCC Colonel Blotto v0.8 Observational OOD Recovery",
+        "",
+        "Hidden Pressure/Control/Chaos mixture weights generate behavior; the recovery model receives only trajectory-level observables.",
+        "",
+        "## Frozen split",
+        "",
+        f"- training mixtures: **{result['design']['train_mixtures']}** blended simplex points",
+        f"- OOD mixtures: **{result['design']['ood_mixtures']}** axis-dominant points (`max(weight) >= {RECOVERY_OOD_DOMINANCE}`)",
+        f"- trajectories: **{result['design']['train_rows']} train / {result['design']['ood_rows']} OOD**",
+        "",
+        "## OOD recovery",
+        "",
+        f"- overall MAE: **{a['ood_overall_mae']:.4f}**",
+        f"- centroid baseline MAE: **{a['centroid_baseline_mae']:.4f}**",
+        f"- relative improvement: **{a['relative_improvement_over_centroid']:.1%}**",
+        "",
+        "| axis | recovery MAE | centroid MAE |",
+        "|---|---:|---:|",
+    ]
+    for axis in ("pressure", "control", "chaos"):
+        lines.append(f"| {axis.title()} | {a['axis_mae'][axis]:.4f} | {a['axis_baseline_mae'][axis]:.4f} |")
+    lines += ["", "## Prespecified checks", ""]
+    for name, item in result["prespecified_checks"].items():
+        lines.append(f"- **{name}**: {'PASS' if item['pass'] else 'FAIL'}")
+    lines += [
+        "",
+        f"Overall primary rule: **{'PASS' if a['all_primary_checks_pass'] else 'FAIL'}**",
+        "",
+        "## Interpretation guardrail",
+        "",
+        "A pass supports recoverability of hidden engineered PCC mixtures from observable Blotto behavior under this synthetic OOD split. It does not establish recovery from human play or prove that the engineered component policies uniquely instantiate PCC.",
+    ]
+    (out / "OBSERVATIONAL_RECOVERY.md").write_text("\n".join(lines) + "\n")
+    return result

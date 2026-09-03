@@ -306,3 +306,31 @@ class MeanProfileExploiter:
     def act(self, game: BlottoGame, opponent_history: list[Allocation], rng: random.Random) -> Allocation:
         predicted = self._prediction(game, opponent_history)
         return _exact_best_response(game, predicted)
+
+@dataclass
+class MixedPCCAgent:
+    """Latent stochastic mixture of the three engineered PCC mechanisms.
+
+    The hidden weights are used only to choose which component policy acts on a
+    round. Recovery experiments observe allocations/outcomes, never the selected
+    component identity or these weights.
+    """
+    pressure_weight: float
+    control_weight: float
+    chaos_weight: float
+    name: str = "mixed_pcc"
+
+    def __post_init__(self) -> None:
+        weights = (self.pressure_weight, self.control_weight, self.chaos_weight)
+        if any(w < 0.0 for w in weights):
+            raise ValueError("mixture weights must be nonnegative")
+        if abs(sum(weights) - 1.0) > 1e-9:
+            raise ValueError("mixture weights must sum to 1")
+
+    def act(self, game: BlottoGame, opponent_history: list[Allocation], rng: random.Random) -> Allocation:
+        u = rng.random()
+        if u < self.pressure_weight:
+            return PressureAgent().act(game, opponent_history, rng)
+        if u < self.pressure_weight + self.control_weight:
+            return SlidingWindowControl(lookback=8).act(game, opponent_history, rng)
+        return ChaosAgent().act(game, opponent_history, rng)

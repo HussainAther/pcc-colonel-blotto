@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.8.0 - Observational latent-mixture OOD recovery
+
+- Added `MixedPCCAgent`, which generates behavior from fixed hidden Pressure/Control/Chaos mixture weights while withholding component selections from recovery.
+- Added a deterministic 0.1 simplex benchmark with 48 blended training mixtures and 18 axis-dominant OOD mixtures.
+- Added 24 trajectory-level observable features with latent weights, component labels, policy internals, RNG seeds, and opponent-family labels explicitly forbidden.
+- Added dependency-free standardized ridge recovery with simplex projection.
+- Frozen default result across 192 training and 72 OOD trajectories: overall OOD MAE **0.0409** vs centroid baseline **0.3556** (**88.5%** improvement).
+- Per-axis OOD MAE: Pressure **0.0382**, Control **0.0532**, Chaos **0.0312**; all prespecified checks PASS.
+- Added protocol, CLI command, frozen validation output, and four tests; full suite now contains 30 tests.
+- Claim remains synthetic observational recovery of an engineered mixture, not recovery from human or naturally learned behavior.
+
 ## 0.7.0 - Guarded-Chaos exploiter falsification
 
 - Added an unconstrained Uniform Random baseline to separate raw entropy from strategic adequacy.

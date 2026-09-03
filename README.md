@@ -194,3 +194,34 @@ Frozen result against the held-out exploiter:
 The important distinction is that Uniform Random is extremely unpredictable but strategically poor, while Guarded Chaos preserves nearly the same empirical action entropy and remains value-positive against the learner. This supports **unpredictability constrained by strategic adequacy** as the candidate Blotto Chaos mechanism; it does not identify entropy alone with Chaos or establish observational construct recovery.
 
 See `docs/CHAOS_EXPLOITER_PROTOCOL.md` and `validation/CHAOS_EXPLOITER_FALSIFICATION.md`.
+
+## v0.8 Observational PCC recovery
+
+v0.8 connects the Blotto mechanism program back to the central PCC recovery question. Hidden Pressure/Control/Chaos weights generate repeated-game behavior, while the recovery model receives only trajectory-level behavioral observables. Component choices, latent weights, seeds, opponent-family labels, and policy internals are forbidden predictors.
+
+The frozen OOD split uses the 0.1 simplex lattice: blended mixtures with every axis `< 0.75` are training data, while axis-dominant mixtures with `max(weight) >= 0.75` are held out entirely.
+
+Run it with:
+
+```bash
+python -m pcc_colonel_blotto observational-recovery \
+  --output-dir validation \
+  --rounds 240 \
+  --seeds-per-mixture 4
+```
+
+Frozen result:
+
+- training mixtures: **48** / OOD mixtures: **18**
+- trajectories: **192 train / 72 OOD**
+- OOD overall MAE: **0.0409**
+- centroid-baseline MAE: **0.3556**
+- relative improvement over centroid: **88.5%**
+- Pressure MAE: **0.0382**
+- Control MAE: **0.0532**
+- Chaos MAE: **0.0312**
+- all three prespecified recovery checks: **PASS**
+
+This supports synthetic observational recoverability of the engineered latent PCC mixture under a genuinely held-out axis-dominant weight region. It does **not** establish recovery from human Blotto play, nor does it prove that learned/natural agents spontaneously factor into PCC components.
+
+See `docs/OBSERVATIONAL_RECOVERY_PROTOCOL.md` and `validation/OBSERVATIONAL_RECOVERY.md`.

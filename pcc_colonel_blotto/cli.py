@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from .experiment import write_chaos_exploiter_falsification, write_control_estimator_ablation, write_control_history_destruction, write_control_regime_switching, write_pressure_leverage_intervention, write_pressure_matched_intervention, write_probe
+from .experiment import write_chaos_exploiter_falsification, write_control_estimator_ablation, write_control_history_destruction, write_control_regime_switching, write_pressure_leverage_intervention, write_pressure_matched_intervention, write_probe, write_observational_recovery
 
 
 def main() -> None:
@@ -34,6 +34,10 @@ def main() -> None:
     chaos.add_argument("--output-dir", default="validation")
     chaos.add_argument("--rounds", type=int, default=200)
     chaos.add_argument("--seeds", type=int, default=24)
+    recovery = sub.add_parser("observational-recovery", help="run the v0.8 latent PCC mixture OOD recovery")
+    recovery.add_argument("--output-dir", default="validation")
+    recovery.add_argument("--rounds", type=int, default=240)
+    recovery.add_argument("--seeds-per-mixture", type=int, default=4)
     args = parser.parse_args()
     if args.command == "mechanism-probe":
         result = write_probe(args.output_dir, rounds=args.rounds, seeds=args.seeds)
@@ -56,6 +60,16 @@ def main() -> None:
         for name, d in result["aggregate"].items():
             print(f"{name}: mean={d['mean_payoff']:.6f} post_switch={d['post_switch_mean_payoff']:.6f}")
         print("qualifying estimators: " + (", ".join(result["qualifying_estimators"]) if result["qualifying_estimators"] else "none"))
+        for name, item in result["prespecified_checks"].items():
+            print(f"{name}: {'PASS' if item['pass'] else 'FAIL'}")
+    elif args.command == "observational-recovery":
+        result = write_observational_recovery(args.output_dir, rounds=args.rounds, seeds_per_mixture=args.seeds_per_mixture)
+        a = result["aggregate"]
+        print(f"OOD overall MAE: {a['ood_overall_mae']:.6f}")
+        print(f"centroid baseline MAE: {a['centroid_baseline_mae']:.6f}")
+        print(f"relative improvement: {a['relative_improvement_over_centroid']:.3%}")
+        for axis, value in a["axis_mae"].items():
+            print(f"{axis} MAE: {value:.6f}")
         for name, item in result["prespecified_checks"].items():
             print(f"{name}: {'PASS' if item['pass'] else 'FAIL'}")
     elif args.command == "chaos-exploiter-falsification":
