@@ -11,6 +11,10 @@ from .agents import (
     AdaptiveCounterOpponent,
     ChaosAgent,
     ControlAgent,
+    ChangePointControl,
+    ExponentialDecayControl,
+    FullHistoryControl,
+    SlidingWindowControl,
     PressureAgent,
     ShuffledHistoryControl,
     StaticWeightedOpponent,
@@ -530,4 +534,190 @@ def write_control_regime_switching(output_dir: str | Path, rounds: int = 300, se
         "This test establishes or falsifies recency-sensitive information use for the current Control policy under a deliberately nonstationary environment. It does not by itself establish observational PCC construct recovery.",
     ]
     (out / "CONTROL_REGIME_SWITCHING.md").write_text("\n".join(lines) + "\n")
+    return result
+
+
+def _prediction_l1(agent, history: list[Allocation], target: Allocation, game: BlottoGame) -> float | None:
+    estimate_fn = getattr(agent, "estimate", None)
+    if estimate_fn is None or not history:
+        return None
+    estimate = estimate_fn(game, history)
+    return sum(abs(estimate[i] - target[i]) for i in range(game.battlefields)) / game.troops
+
+
+def _run_estimator_replay(agent, opponent_trace: list[Allocation], *, seed: int, game: BlottoGame) -> dict:
+    rng = random.Random(seed + 120_000_151)
+    history: list[Allocation] = []
+    payoffs: list[float] = []
+    prediction_errors: list[float] = []
+    for target in opponent_trace:
+        err = _prediction_l1(agent, history, target, game)
+        if err is not None:
+            prediction_errors.append(err)
+        action = agent.act(game, history, rng)
+        payoffs.append(game.payoff(action, target))
+        history.append(target)
+    return {
+        "payoffs": payoffs,
+        "mean_payoff": sum(payoffs) / len(payoffs),
+        "win_rate": sum(1 for x in payoffs if x > 0) / len(payoffs),
+        "prediction_l1": sum(prediction_errors) / len(prediction_errors) if prediction_errors else None,
+    }
+
+
+def run_control_estimator_ablation(rounds: int = 300, seeds: int = 32, adaptation_window: int = 16) -> dict:
+    """Compare alternative Control estimators on frozen nonstationary traces."""
+    if adaptation_window <= 0:
+        raise ValueError("adaptation_window must be positive")
+    game = BlottoGame()
+    agents = [
+        ValueBaseline(),
+        FullHistoryControl(),
+        SlidingWindowControl(lookback=8),
+        ExponentialDecayControl(alpha=0.35),
+        ChangePointControl(window=8, threshold=4.0),
+    ]
+    switches = sorted(set((rounds // 3, (2 * rounds) // 3)))
+    widths = sorted(set([4, 8, adaptation_window, 32]))
+    seed_rows: list[dict] = []
+
+    for seed in range(seeds):
+        trace, labels = generate_regime_switching_replay(rounds=rounds, seed=seed, game=game)
+        row = {"seed": seed, "regime_labels": labels}
+        for agent in agents:
+            d = _run_estimator_replay(agent, trace, seed=seed, game=game)
+            ps = d["payoffs"]
+            row[agent.name] = {
+                "mean_payoff": d["mean_payoff"],
+                "win_rate": d["win_rate"],
+                "prediction_l1": d["prediction_l1"],
+                "post_switch_mean_payoff": sum(_window_mean(ps, sw, sw + adaptation_window) for sw in switches) / len(switches),
+                "post_switch_window_diagnostics": {
+                    str(width): sum(_window_mean(ps, sw, sw + width) for sw in switches) / len(switches)
+                    for width in widths
+                },
+            }
+        seed_rows.append(row)
+
+    names = [a.name for a in agents]
+    def mean_metric(name: str, metric: str) -> float:
+        vals = [r[name][metric] for r in seed_rows if r[name][metric] is not None]
+        return sum(vals) / len(vals)
+
+    aggregate = {}
+    for name in names:
+        aggregate[name] = {
+            "mean_payoff": mean_metric(name, "mean_payoff"),
+            "win_rate": mean_metric(name, "win_rate"),
+            "prediction_l1": None if name == "baseline" else mean_metric(name, "prediction_l1"),
+            "post_switch_mean_payoff": mean_metric(name, "post_switch_mean_payoff"),
+            "post_switch_window_diagnostics": {
+                str(width): sum(r[name]["post_switch_window_diagnostics"][str(width)] for r in seed_rows) / seeds
+                for width in widths
+            },
+        }
+
+    full = aggregate["control_full_history"]
+    candidates = ["control_sliding_window", "control_exponential_decay", "control_change_point"]
+    best_post = max(candidates, key=lambda n: aggregate[n]["post_switch_mean_payoff"])
+    best_overall = max(candidates, key=lambda n: aggregate[n]["mean_payoff"])
+    meaningful_margin = 0.02
+    maintenance_tolerance = 0.02
+    qualifies = []
+    for name in candidates:
+        post_gain = aggregate[name]["post_switch_mean_payoff"] - full["post_switch_mean_payoff"]
+        overall_delta = aggregate[name]["mean_payoff"] - full["mean_payoff"]
+        if post_gain >= meaningful_margin and overall_delta >= -maintenance_tolerance:
+            qualifies.append(name)
+
+    return {
+        "schema": "pcc-colonel-blotto-control-estimator-ablation-v0.4",
+        "game": {"troops": game.troops, "values": list(game.values), "battlefields": game.battlefields},
+        "design": {
+            "rounds_per_seed": rounds,
+            "seeds": seeds,
+            "regimes": 3,
+            "switch_rounds": switches,
+            "adaptation_window": adaptation_window,
+            "opponent_trace": "same frozen exogenous three-regime generator as v0.3; replayed identically across estimators",
+            "estimators": {
+                "control_full_history": "mean of all prior opponent allocations",
+                "control_sliding_window": "mean of last 8 allocations",
+                "control_exponential_decay": "EWMA with alpha=0.35",
+                "control_change_point": "L1 two-window shift detector; window=8, threshold=4 troops; reset to most recent detected segment",
+            },
+            "prespecified_success_rule": "at least one recency-aware estimator improves 16-round post-switch payoff over full-history by >=0.02 while overall payoff is no worse by more than 0.02",
+        },
+        "aggregate": aggregate,
+        "best_recency_estimator_post_switch": best_post,
+        "best_recency_estimator_overall": best_overall,
+        "qualifying_estimators": qualifies,
+        "prespecified_checks": {
+            "at_least_one_recency_estimator_improves_post_switch_without_material_overall_loss": {
+                "pass": bool(qualifies),
+                "qualifying_estimators": qualifies,
+                "post_switch_margin": meaningful_margin,
+                "overall_loss_tolerance": maintenance_tolerance,
+            },
+            "best_recency_estimator_beats_full_history_post_switch": {
+                "pass": aggregate[best_post]["post_switch_mean_payoff"] > full["post_switch_mean_payoff"],
+                "best": best_post,
+                "delta": aggregate[best_post]["post_switch_mean_payoff"] - full["post_switch_mean_payoff"],
+            },
+        },
+        "seed_results": seed_rows,
+        "claim_scope": "Control-estimator mechanism ablation under fixed nonstationary replay; not observational construct recovery",
+    }
+
+
+def write_control_estimator_ablation(output_dir: str | Path, rounds: int = 300, seeds: int = 32, adaptation_window: int = 16) -> dict:
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    result = run_control_estimator_ablation(rounds=rounds, seeds=seeds, adaptation_window=adaptation_window)
+    (out / "control-estimator-ablation.json").write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")
+    a = result["aggregate"]
+    order = ["baseline", "control_full_history", "control_sliding_window", "control_exponential_decay", "control_change_point"]
+    labels = {
+        "baseline": "Baseline",
+        "control_full_history": "Full-history Control",
+        "control_sliding_window": "Sliding-window Control",
+        "control_exponential_decay": "Exponential-decay Control",
+        "control_change_point": "Change-point Control",
+    }
+    lines = [
+        "# Control Estimator Ablation",
+        "",
+        "This v0.4 experiment holds the regime-switching environment fixed and makes the **history estimator itself** the experimental object.",
+        "",
+        "## Prespecified success rule",
+        "",
+        "At least one explicitly recency-aware estimator must improve 16-round post-switch payoff over full-history Control by **>=0.02**, while losing no more than **0.02** in overall mean payoff.",
+        "",
+        "| policy | mean payoff | post-switch payoff | prediction L1 | win rate |",
+        "|---|---:|---:|---:|---:|",
+    ]
+    for name in order:
+        d = a[name]
+        pred = "-" if d["prediction_l1"] is None else f"{d['prediction_l1']:.4f}"
+        lines.append(f"| {labels[name]} | {d['mean_payoff']:.4f} | {d['post_switch_mean_payoff']:.4f} | {pred} | {d['win_rate']:.3f} |")
+    lines += [
+        "",
+        f"Best recency estimator post-switch: **{result['best_recency_estimator_post_switch']}**",
+        "",
+        f"Best recency estimator overall: **{result['best_recency_estimator_overall']}**",
+        "",
+        "Qualifying estimators: **" + (", ".join(result["qualifying_estimators"]) if result["qualifying_estimators"] else "none") + "**",
+        "",
+        "## Prespecified checks",
+        "",
+    ]
+    for name, item in result["prespecified_checks"].items():
+        lines.append(f"- **{name}**: {'PASS' if item['pass'] else 'FAIL'}")
+    lines += [
+        "",
+        "## Interpretation guardrail",
+        "",
+        "This experiment identifies whether recency-aware belief estimation improves engineered Control under fixed nonstationarity. It does not establish that the selected estimator is universally optimal or that observational PCC recovery has been achieved.",
+    ]
+    (out / "CONTROL_ESTIMATOR_ABLATION.md").write_text("\n".join(lines) + "\n")
     return result

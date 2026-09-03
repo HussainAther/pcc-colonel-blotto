@@ -92,3 +92,32 @@ Default 32-seed result:
 - Prespecified 16-round post-switch true-vs-shuffled difference: **+0.0095**
 
 The strong recency hypothesis therefore fails. Shuffling history improves overall payoff, and the small 16-round true-history edge is not robust to descriptive 4/8/32-round window checks. The current Control rule is history-sensitive but not reliably recency-optimal under this regime-switching design.
+
+## v0.4 Control estimator ablation
+
+v0.4 stops changing the environment and makes the **opponent-history estimator** the experimental object. The same frozen three-regime replay is evaluated with Full-history, Sliding-window (8 rounds), Exponential-decay (`alpha=0.35`), and Change-point-aware Control.
+
+Run it with:
+
+```bash
+python -m pcc_colonel_blotto control-estimator-ablation \
+  --output-dir validation \
+  --rounds 300 \
+  --seeds 32 \
+  --adaptation-window 16
+```
+
+Default 32-seed result:
+
+- Baseline: **0.1887** overall / **0.3293** post-switch
+- Full-history Control: **0.2496** / **0.3105**
+- Sliding-window Control: **0.2843** / **0.3246**
+- Exponential-decay Control: **0.1653** / **0.2804**
+- Change-point Control: **0.1683** / **0.3021**
+- Primary success rule: **FAIL**
+
+Sliding-window Control is the strongest Control estimator overall and improves the 16-round post-switch payoff over Full-history Control by **0.0141**, but this does not reach the prespecified **0.02** margin. Exponential-decay and Change-point Control do not justify promotion under the frozen design.
+
+An important bookkeeping correction is now explicit: the v0.3 `ControlAgent` itself used an 8-round lookback, so it corresponds most closely to the v0.4 Sliding-window estimator rather than Full-history Control.
+
+See `docs/CONTROL_ESTIMATOR_ABLATION_PROTOCOL.md` and `validation/CONTROL_ESTIMATOR_ABLATION.md`.

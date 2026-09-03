@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from .experiment import write_control_history_destruction, write_control_regime_switching, write_probe
+from .experiment import write_control_estimator_ablation, write_control_history_destruction, write_control_regime_switching, write_probe
 
 
 def main() -> None:
@@ -21,6 +21,11 @@ def main() -> None:
     regime.add_argument("--rounds", type=int, default=300)
     regime.add_argument("--seeds", type=int, default=32)
     regime.add_argument("--adaptation-window", type=int, default=16)
+    estimator = sub.add_parser("control-estimator-ablation", help="compare Control history estimators on frozen regime-switching traces")
+    estimator.add_argument("--output-dir", default="validation")
+    estimator.add_argument("--rounds", type=int, default=300)
+    estimator.add_argument("--seeds", type=int, default=32)
+    estimator.add_argument("--adaptation-window", type=int, default=16)
     args = parser.parse_args()
     if args.command == "mechanism-probe":
         result = write_probe(args.output_dir, rounds=args.rounds, seeds=args.seeds)
@@ -34,6 +39,15 @@ def main() -> None:
         print(f"true Control mean payoff: {a['true_control_mean_payoff']:.6f}")
         frac = a['fraction_control_gain_eliminated_after_shuffle']
         print(f"fraction Control gain eliminated: {frac:.3%}" if frac is not None else "fraction Control gain eliminated: undefined")
+        for name, item in result["prespecified_checks"].items():
+            print(f"{name}: {'PASS' if item['pass'] else 'FAIL'}")
+    elif args.command == "control-estimator-ablation":
+        result = write_control_estimator_ablation(
+            args.output_dir, rounds=args.rounds, seeds=args.seeds, adaptation_window=args.adaptation_window
+        )
+        for name, d in result["aggregate"].items():
+            print(f"{name}: mean={d['mean_payoff']:.6f} post_switch={d['post_switch_mean_payoff']:.6f}")
+        print("qualifying estimators: " + (", ".join(result["qualifying_estimators"]) if result["qualifying_estimators"] else "none"))
         for name, item in result["prespecified_checks"].items():
             print(f"{name}: {'PASS' if item['pass'] else 'FAIL'}")
     elif args.command == "control-regime-switching":

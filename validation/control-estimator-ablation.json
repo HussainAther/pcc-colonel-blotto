@@ -1,5 +1,5 @@
 {
-  "schema": "pcc-colonel-blotto-control-regime-switching-v0.3",
+  "schema": "pcc-colonel-blotto-control-estimator-ablation-v0.4",
   "game": {
     "troops": 10,
     "values": [
@@ -20,72 +20,91 @@
       200
     ],
     "adaptation_window": 16,
-    "opponent_trace": "exogenous three-regime allocation process replayed identically across conditions",
-    "ablation": "shuffle complete observed opponent history before Control, preserving history multiset while destroying recency",
-    "primary_threshold": "at least 50% of true Control payoff gain over Baseline is eliminated"
+    "opponent_trace": "same frozen exogenous three-regime generator as v0.3; replayed identically across estimators",
+    "estimators": {
+      "control_full_history": "mean of all prior opponent allocations",
+      "control_sliding_window": "mean of last 8 allocations",
+      "control_exponential_decay": "EWMA with alpha=0.35",
+      "control_change_point": "L1 two-window shift detector; window=8, threshold=4 troops; reset to most recent detected segment"
+    },
+    "prespecified_success_rule": "at least one recency-aware estimator improves 16-round post-switch payoff over full-history by >=0.02 while overall payoff is no worse by more than 0.02"
   },
   "aggregate": {
-    "baseline_mean_payoff": 0.18920833333333334,
-    "shuffled_control_mean_payoff": 0.30677604166666667,
-    "true_control_mean_payoff": 0.28440625,
-    "true_control_gain_over_baseline": 0.09519791666666669,
-    "shuffled_control_gain_over_baseline": 0.11756770833333333,
-    "fraction_control_gain_eliminated_after_shuffle": -0.2349819455082609,
-    "baseline_post_switch_mean_payoff": 0.329833984375,
-    "shuffled_control_post_switch_mean_payoff": 0.31513671875,
-    "true_control_post_switch_mean_payoff": 0.32460937500000003,
-    "post_switch_true_minus_shuffled": 0.009472656250000044,
-    "baseline_win_rate": 0.6625,
-    "shuffled_control_win_rate": 0.9494791666666667,
-    "true_control_win_rate": 0.8638541666666667,
-    "post_switch_window_diagnostics": {
-      "4": {
-        "baseline": 0.328515625,
-        "control_shuffled_history": 0.3009765625,
-        "control": 0.2669921875,
-        "true_minus_shuffled": -0.03398437500000001,
-        "true_minus_baseline": -0.0615234375
-      },
-      "8": {
-        "baseline": 0.33193359375,
-        "control_shuffled_history": 0.30703125,
-        "control": 0.300390625,
-        "true_minus_shuffled": -0.006640624999999956,
-        "true_minus_baseline": -0.031542968749999956
-      },
-      "16": {
-        "baseline": 0.329833984375,
-        "control_shuffled_history": 0.31513671875,
-        "control": 0.32460937500000003,
-        "true_minus_shuffled": 0.009472656250000044,
-        "true_minus_baseline": -0.005224609374999967
-      },
-      "32": {
-        "baseline": 0.3292236328125,
-        "control_shuffled_history": 0.3273193359375,
-        "control": 0.325,
-        "true_minus_shuffled": -0.0023193359375,
-        "true_minus_baseline": -0.004223632812499989
+    "baseline": {
+      "mean_payoff": 0.18867708333333333,
+      "win_rate": 0.6586458333333334,
+      "prediction_l1": null,
+      "post_switch_mean_payoff": 0.329345703125,
+      "post_switch_window_diagnostics": {
+        "4": 0.3328125,
+        "8": 0.33212890625,
+        "16": 0.329345703125,
+        "32": 0.3292724609375
+      }
+    },
+    "control_full_history": {
+      "mean_payoff": 0.24960416666666668,
+      "win_rate": 0.7913541666666667,
+      "prediction_l1": 0.5166822602152717,
+      "post_switch_mean_payoff": 0.310498046875,
+      "post_switch_window_diagnostics": {
+        "4": 0.3015625,
+        "8": 0.3037109375,
+        "16": 0.310498046875,
+        "32": 0.3154052734375
+      }
+    },
+    "control_sliding_window": {
+      "mean_payoff": 0.28434895833333335,
+      "win_rate": 0.8638541666666667,
+      "prediction_l1": 0.16299565018315018,
+      "post_switch_mean_payoff": 0.32460937500000003,
+      "post_switch_window_diagnostics": {
+        "4": 0.2669921875,
+        "8": 0.300390625,
+        "16": 0.32460937500000003,
+        "32": 0.325
+      }
+    },
+    "control_exponential_decay": {
+      "mean_payoff": 0.16529166666666667,
+      "win_rate": 0.6793750000000001,
+      "prediction_l1": 0.15237677220253343,
+      "post_switch_mean_payoff": 0.28037109375,
+      "post_switch_window_diagnostics": {
+        "4": 0.27597656249999997,
+        "8": 0.29775390625,
+        "16": 0.28037109375,
+        "32": 0.250244140625
+      }
+    },
+    "control_change_point": {
+      "mean_payoff": 0.16827604166666668,
+      "win_rate": 0.6641666666666667,
+      "prediction_l1": 0.16276781763845463,
+      "post_switch_mean_payoff": 0.30205078125,
+      "post_switch_window_diagnostics": {
+        "4": 0.1935546875,
+        "8": 0.2638671875,
+        "16": 0.30205078125,
+        "32": 0.2746337890625
       }
     }
   },
+  "best_recency_estimator_post_switch": "control_sliding_window",
+  "best_recency_estimator_overall": "control_sliding_window",
+  "qualifying_estimators": [],
   "prespecified_checks": {
-    "true_control_beats_baseline": {
-      "pass": true,
-      "gain": 0.09519791666666669
-    },
-    "history_shuffle_hurts_control": {
+    "at_least_one_recency_estimator_improves_post_switch_without_material_overall_loss": {
       "pass": false,
-      "delta_shuffled_minus_true": 0.02236979166666664
+      "qualifying_estimators": [],
+      "post_switch_margin": 0.02,
+      "overall_loss_tolerance": 0.02
     },
-    "history_shuffle_eliminates_at_least_half_control_gain": {
-      "pass": false,
-      "fraction_eliminated": -0.2349819455082609,
-      "threshold": 0.5
-    },
-    "true_control_beats_shuffled_in_prespecified_16_round_window": {
+    "best_recency_estimator_beats_full_history_post_switch": {
       "pass": true,
-      "delta_true_minus_shuffled": 0.009472656250000044
+      "best": "control_sliding_window",
+      "delta": 0.014111328125000044
     }
   },
   "seed_results": [
@@ -395,35 +414,62 @@
       ],
       "baseline": {
         "mean_payoff": 0.19133333333333333,
-        "win_rate": 0.65,
+        "win_rate": 0.6433333333333333,
+        "prediction_l1": null,
         "post_switch_mean_payoff": 0.3265625,
         "post_switch_window_diagnostics": {
-          "4": 0.325,
-          "8": 0.33125,
+          "4": 0.35,
+          "8": 0.3375,
           "16": 0.3265625,
-          "32": 0.3203125
+          "32": 0.32968749999999997
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.3165,
-        "win_rate": 0.9433333333333334,
-        "post_switch_mean_payoff": 0.315625,
+      "control_full_history": {
+        "mean_payoff": 0.24633333333333335,
+        "win_rate": 0.75,
+        "prediction_l1": 0.5207727744722612,
+        "post_switch_mean_payoff": 0.3046875,
         "post_switch_window_diagnostics": {
-          "4": 0.275,
-          "8": 0.303125,
-          "16": 0.315625,
-          "32": 0.325
+          "4": 0.30625,
+          "8": 0.315625,
+          "16": 0.3046875,
+          "32": 0.30859375
         }
       },
-      "control": {
+      "control_sliding_window": {
         "mean_payoff": 0.28983333333333333,
         "win_rate": 0.87,
+        "prediction_l1": 0.16310559006211178,
         "post_switch_mean_payoff": 0.36718750000000006,
         "post_switch_window_diagnostics": {
           "4": 0.28125,
           "8": 0.34687500000000004,
           "16": 0.36718750000000006,
           "32": 0.32578125
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.17383333333333334,
+        "win_rate": 0.68,
+        "prediction_l1": 0.1498927803050334,
+        "post_switch_mean_payoff": 0.265625,
+        "post_switch_window_diagnostics": {
+          "4": 0.26249999999999996,
+          "8": 0.27499999999999997,
+          "16": 0.265625,
+          "32": 0.253125
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.17600000000000002,
+        "win_rate": 0.6566666666666666,
+        "prediction_l1": 0.16089050816082884,
+        "post_switch_mean_payoff": 0.36250000000000004,
+        "post_switch_window_diagnostics": {
+          "4": 0.2625,
+          "8": 0.3375,
+          "16": 0.36250000000000004,
+          "32": 0.3140625
         }
       }
     },
@@ -732,36 +778,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.195,
-        "win_rate": 0.6666666666666666,
-        "post_switch_mean_payoff": 0.321875,
-        "post_switch_window_diagnostics": {
-          "4": 0.30625,
-          "8": 0.3,
-          "16": 0.321875,
-          "32": 0.33046875
-        }
-      },
-      "control_shuffled_history": {
-        "mean_payoff": 0.3195,
-        "win_rate": 0.9566666666666667,
+        "mean_payoff": 0.18883333333333333,
+        "win_rate": 0.6566666666666666,
+        "prediction_l1": null,
         "post_switch_mean_payoff": 0.325,
         "post_switch_window_diagnostics": {
-          "4": 0.3125,
-          "8": 0.325,
+          "4": 0.30625,
+          "8": 0.334375,
           "16": 0.325,
-          "32": 0.340625
+          "32": 0.33828125
         }
       },
-      "control": {
-        "mean_payoff": 0.2975,
+      "control_full_history": {
+        "mean_payoff": 0.25,
+        "win_rate": 0.7866666666666666,
+        "prediction_l1": 0.5220478668181947,
+        "post_switch_mean_payoff": 0.3046875,
+        "post_switch_window_diagnostics": {
+          "4": 0.325,
+          "8": 0.309375,
+          "16": 0.3046875,
+          "32": 0.32187499999999997
+        }
+      },
+      "control_sliding_window": {
+        "mean_payoff": 0.2971666666666667,
         "win_rate": 0.8233333333333334,
+        "prediction_l1": 0.1705335244465679,
         "post_switch_mean_payoff": 0.353125,
         "post_switch_window_diagnostics": {
           "4": 0.26875,
           "8": 0.296875,
           "16": 0.353125,
           "32": 0.36328125
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.21800000000000003,
+        "win_rate": 0.6533333333333333,
+        "prediction_l1": 0.1616496934558748,
+        "post_switch_mean_payoff": 0.29062499999999997,
+        "post_switch_window_diagnostics": {
+          "4": 0.33125,
+          "8": 0.33437500000000003,
+          "16": 0.29062499999999997,
+          "32": 0.29453124999999997
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.2385,
+        "win_rate": 0.6666666666666666,
+        "prediction_l1": 0.1665041594638215,
+        "post_switch_mean_payoff": 0.3484375,
+        "post_switch_window_diagnostics": {
+          "4": 0.25,
+          "8": 0.28750000000000003,
+          "16": 0.3484375,
+          "32": 0.3265625
         }
       }
     },
@@ -1070,36 +1143,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.18733333333333335,
-        "win_rate": 0.6866666666666666,
-        "post_switch_mean_payoff": 0.315625,
+        "mean_payoff": 0.192,
+        "win_rate": 0.67,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.3359375,
         "post_switch_window_diagnostics": {
-          "4": 0.31875,
-          "8": 0.303125,
-          "16": 0.315625,
-          "32": 0.325
+          "4": 0.34375,
+          "8": 0.31875000000000003,
+          "16": 0.3359375,
+          "32": 0.33749999999999997
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.3185,
-        "win_rate": 0.96,
-        "post_switch_mean_payoff": 0.3203125,
+      "control_full_history": {
+        "mean_payoff": 0.26133333333333336,
+        "win_rate": 0.8,
+        "prediction_l1": 0.5173174827676548,
+        "post_switch_mean_payoff": 0.325,
         "post_switch_window_diagnostics": {
-          "4": 0.2375,
-          "8": 0.290625,
-          "16": 0.3203125,
-          "32": 0.340625
+          "4": 0.2875,
+          "8": 0.29375,
+          "16": 0.325,
+          "32": 0.32343750000000004
         }
       },
-      "control": {
-        "mean_payoff": 0.31200000000000006,
+      "control_sliding_window": {
+        "mean_payoff": 0.3115,
         "win_rate": 0.87,
+        "prediction_l1": 0.15963449593884377,
         "post_switch_mean_payoff": 0.284375,
         "post_switch_window_diagnostics": {
           "4": 0.2375,
           "8": 0.2875,
           "16": 0.284375,
           "32": 0.35390625
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.20933333333333334,
+        "win_rate": 0.6866666666666666,
+        "prediction_l1": 0.1453920747869487,
+        "post_switch_mean_payoff": 0.2546875,
+        "post_switch_window_diagnostics": {
+          "4": 0.27499999999999997,
+          "8": 0.290625,
+          "16": 0.2546875,
+          "32": 0.2734375
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.19316666666666668,
+        "win_rate": 0.6333333333333333,
+        "prediction_l1": 0.15839336347434368,
+        "post_switch_mean_payoff": 0.2546875,
+        "post_switch_window_diagnostics": {
+          "4": 0.18125,
+          "8": 0.25937499999999997,
+          "16": 0.2546875,
+          "32": 0.2734375
         }
       }
     },
@@ -1408,36 +1508,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.183,
-        "win_rate": 0.6566666666666666,
-        "post_switch_mean_payoff": 0.321875,
+        "mean_payoff": 0.18816666666666668,
+        "win_rate": 0.66,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.3046875,
         "post_switch_window_diagnostics": {
-          "4": 0.31875,
-          "8": 0.334375,
-          "16": 0.321875,
-          "32": 0.328125
+          "4": 0.3,
+          "8": 0.30625,
+          "16": 0.3046875,
+          "32": 0.32265625000000003
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.2975,
-        "win_rate": 0.9366666666666666,
-        "post_switch_mean_payoff": 0.33906250000000004,
+      "control_full_history": {
+        "mean_payoff": 0.2068333333333333,
+        "win_rate": 0.65,
+        "prediction_l1": 0.5211988255396519,
+        "post_switch_mean_payoff": 0.29531250000000003,
         "post_switch_window_diagnostics": {
-          "4": 0.31875,
-          "8": 0.33125000000000004,
-          "16": 0.33906250000000004,
-          "32": 0.3453125
+          "4": 0.25625,
+          "8": 0.27499999999999997,
+          "16": 0.29531250000000003,
+          "32": 0.31015625
         }
       },
-      "control": {
+      "control_sliding_window": {
         "mean_payoff": 0.2886666666666666,
         "win_rate": 0.85,
+        "prediction_l1": 0.159217232043319,
         "post_switch_mean_payoff": 0.32656250000000003,
         "post_switch_window_diagnostics": {
           "4": 0.28125,
           "8": 0.321875,
           "16": 0.32656250000000003,
           "32": 0.3484375
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.157,
+        "win_rate": 0.64,
+        "prediction_l1": 0.14727620794508864,
+        "post_switch_mean_payoff": 0.30625,
+        "post_switch_window_diagnostics": {
+          "4": 0.27499999999999997,
+          "8": 0.340625,
+          "16": 0.30625,
+          "32": 0.28203124999999996
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.1145,
+        "win_rate": 0.5166666666666667,
+        "prediction_l1": 0.1621303576354316,
+        "post_switch_mean_payoff": 0.2921875,
+        "post_switch_window_diagnostics": {
+          "4": 0.23125,
+          "8": 0.296875,
+          "16": 0.2921875,
+          "32": 0.27265625
         }
       }
     },
@@ -1746,36 +1873,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.18866666666666668,
-        "win_rate": 0.6333333333333333,
-        "post_switch_mean_payoff": 0.3296875,
+        "mean_payoff": 0.18466666666666667,
+        "win_rate": 0.6366666666666667,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.33437500000000003,
         "post_switch_window_diagnostics": {
-          "4": 0.33125,
-          "8": 0.33125,
-          "16": 0.3296875,
-          "32": 0.32578125
+          "4": 0.3,
+          "8": 0.325,
+          "16": 0.33437500000000003,
+          "32": 0.32265625
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.3305,
-        "win_rate": 0.97,
-        "post_switch_mean_payoff": 0.284375,
+      "control_full_history": {
+        "mean_payoff": 0.30383333333333334,
+        "win_rate": 0.9566666666666667,
+        "prediction_l1": 0.5203497922383499,
+        "post_switch_mean_payoff": 0.3265625,
         "post_switch_window_diagnostics": {
-          "4": 0.2875,
-          "8": 0.271875,
-          "16": 0.284375,
-          "32": 0.31015625
+          "4": 0.275,
+          "8": 0.284375,
+          "16": 0.3265625,
+          "32": 0.340625
         }
       },
-      "control": {
+      "control_sliding_window": {
         "mean_payoff": 0.29433333333333334,
         "win_rate": 0.9333333333333333,
+        "prediction_l1": 0.16189361363274407,
         "post_switch_mean_payoff": 0.32187499999999997,
         "post_switch_window_diagnostics": {
           "4": 0.25,
           "8": 0.265625,
           "16": 0.32187499999999997,
           "32": 0.30859375
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.16566666666666668,
+        "win_rate": 0.78,
+        "prediction_l1": 0.15213175839986778,
+        "post_switch_mean_payoff": 0.2,
+        "post_switch_window_diagnostics": {
+          "4": 0.25625,
+          "8": 0.215625,
+          "16": 0.2,
+          "32": 0.16015625
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.18183333333333335,
+        "win_rate": 0.83,
+        "prediction_l1": 0.15997715691215,
+        "post_switch_mean_payoff": 0.2734375,
+        "post_switch_window_diagnostics": {
+          "4": 0.13124999999999998,
+          "8": 0.20625,
+          "16": 0.2734375,
+          "32": 0.2390625
         }
       }
     },
@@ -2084,36 +2238,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.18766666666666665,
-        "win_rate": 0.6666666666666666,
-        "post_switch_mean_payoff": 0.3296875,
+        "mean_payoff": 0.18483333333333335,
+        "win_rate": 0.66,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.3265625,
+        "post_switch_window_diagnostics": {
+          "4": 0.3625,
+          "8": 0.325,
+          "16": 0.3265625,
+          "32": 0.32734375
+        }
+      },
+      "control_full_history": {
+        "mean_payoff": 0.28783333333333333,
+        "win_rate": 0.9333333333333333,
+        "prediction_l1": 0.5168931776847373,
+        "post_switch_mean_payoff": 0.3609375,
         "post_switch_window_diagnostics": {
           "4": 0.35,
-          "8": 0.31875,
-          "16": 0.3296875,
-          "32": 0.328125
+          "8": 0.340625,
+          "16": 0.3609375,
+          "32": 0.34921875
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.2966666666666667,
-        "win_rate": 0.9366666666666666,
-        "post_switch_mean_payoff": 0.27187500000000003,
-        "post_switch_window_diagnostics": {
-          "4": 0.25625,
-          "8": 0.271875,
-          "16": 0.27187500000000003,
-          "32": 0.3125
-        }
-      },
-      "control": {
+      "control_sliding_window": {
         "mean_payoff": 0.2965,
         "win_rate": 0.8533333333333334,
+        "prediction_l1": 0.16571667462971812,
         "post_switch_mean_payoff": 0.3140625,
         "post_switch_window_diagnostics": {
           "4": 0.24375,
           "8": 0.28750000000000003,
           "16": 0.3140625,
           "32": 0.31015625
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.22733333333333333,
+        "win_rate": 0.7466666666666667,
+        "prediction_l1": 0.15361594393879077,
+        "post_switch_mean_payoff": 0.309375,
+        "post_switch_window_diagnostics": {
+          "4": 0.29374999999999996,
+          "8": 0.35000000000000003,
+          "16": 0.309375,
+          "32": 0.26640625
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.245,
+        "win_rate": 0.8033333333333333,
+        "prediction_l1": 0.165929803756416,
+        "post_switch_mean_payoff": 0.3234375,
+        "post_switch_window_diagnostics": {
+          "4": 0.26875,
+          "8": 0.30625,
+          "16": 0.3234375,
+          "32": 0.29140625
         }
       }
     },
@@ -2422,36 +2603,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.189,
-        "win_rate": 0.6466666666666666,
-        "post_switch_mean_payoff": 0.3359375,
+        "mean_payoff": 0.18366666666666667,
+        "win_rate": 0.65,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.3140625,
         "post_switch_window_diagnostics": {
-          "4": 0.34375,
-          "8": 0.34375,
-          "16": 0.3359375,
-          "32": 0.3375
+          "4": 0.33125,
+          "8": 0.30625,
+          "16": 0.3140625,
+          "32": 0.32499999999999996
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.3125,
-        "win_rate": 0.9666666666666667,
-        "post_switch_mean_payoff": 0.2890625,
+      "control_full_history": {
+        "mean_payoff": 0.28933333333333333,
+        "win_rate": 0.94,
+        "prediction_l1": 0.5068998697868458,
+        "post_switch_mean_payoff": 0.3078125,
         "post_switch_window_diagnostics": {
-          "4": 0.2875,
-          "8": 0.290625,
-          "16": 0.2890625,
+          "4": 0.29375,
+          "8": 0.296875,
+          "16": 0.3078125,
           "32": 0.31015625
         }
       },
-      "control": {
+      "control_sliding_window": {
         "mean_payoff": 0.294,
         "win_rate": 0.8933333333333333,
+        "prediction_l1": 0.15472129319955408,
         "post_switch_mean_payoff": 0.3109375,
         "post_switch_window_diagnostics": {
           "4": 0.3375,
           "8": 0.33437500000000003,
           "16": 0.3109375,
           "32": 0.35468750000000004
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.1565,
+        "win_rate": 0.7466666666666667,
+        "prediction_l1": 0.14355111939131762,
+        "post_switch_mean_payoff": 0.296875,
+        "post_switch_window_diagnostics": {
+          "4": 0.35000000000000003,
+          "8": 0.35312499999999997,
+          "16": 0.296875,
+          "32": 0.2421875
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.18283333333333335,
+        "win_rate": 0.7666666666666667,
+        "prediction_l1": 0.15538226987230652,
+        "post_switch_mean_payoff": 0.2609375,
+        "post_switch_window_diagnostics": {
+          "4": 0.1375,
+          "8": 0.23437500000000003,
+          "16": 0.2609375,
+          "32": 0.2546875
         }
       }
     },
@@ -2760,36 +2968,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.18716666666666668,
-        "win_rate": 0.67,
-        "post_switch_mean_payoff": 0.33125,
+        "mean_payoff": 0.18933333333333333,
+        "win_rate": 0.6733333333333333,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.3234375,
         "post_switch_window_diagnostics": {
-          "4": 0.375,
-          "8": 0.3625,
-          "16": 0.33125,
-          "32": 0.32499999999999996
+          "4": 0.34375,
+          "8": 0.340625,
+          "16": 0.3234375,
+          "32": 0.31796875
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.2985,
-        "win_rate": 0.93,
-        "post_switch_mean_payoff": 0.3359375,
+      "control_full_history": {
+        "mean_payoff": 0.2315,
+        "win_rate": 0.75,
+        "prediction_l1": 0.5180523411124459,
+        "post_switch_mean_payoff": 0.303125,
         "post_switch_window_diagnostics": {
-          "4": 0.29375,
-          "8": 0.325,
-          "16": 0.3359375,
-          "32": 0.3359375
+          "4": 0.3,
+          "8": 0.328125,
+          "16": 0.303125,
+          "32": 0.30546874999999996
         }
       },
-      "control": {
-        "mean_payoff": 0.23816666666666667,
+      "control_sliding_window": {
+        "mean_payoff": 0.2385,
         "win_rate": 0.8266666666666667,
+        "prediction_l1": 0.17225991399904442,
         "post_switch_mean_payoff": 0.3375,
         "post_switch_window_diagnostics": {
           "4": 0.19999999999999998,
           "8": 0.28750000000000003,
           "16": 0.3375,
           "32": 0.32812500000000006
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.165,
+        "win_rate": 0.6633333333333333,
+        "prediction_l1": 0.16056050489155121,
+        "post_switch_mean_payoff": 0.3359375,
+        "post_switch_window_diagnostics": {
+          "4": 0.25625,
+          "8": 0.296875,
+          "16": 0.3359375,
+          "32": 0.31171875000000004
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.158,
+        "win_rate": 0.6233333333333333,
+        "prediction_l1": 0.17127265323433186,
+        "post_switch_mean_payoff": 0.31093750000000003,
+        "post_switch_window_diagnostics": {
+          "4": 0.14375,
+          "8": 0.259375,
+          "16": 0.31093750000000003,
+          "32": 0.31640625000000006
         }
       }
     },
@@ -3098,36 +3333,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.18466666666666667,
-        "win_rate": 0.6433333333333333,
-        "post_switch_mean_payoff": 0.296875,
+        "mean_payoff": 0.18683333333333332,
+        "win_rate": 0.64,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.3078125,
         "post_switch_window_diagnostics": {
-          "4": 0.2875,
-          "8": 0.290625,
-          "16": 0.296875,
-          "32": 0.31328125
+          "4": 0.33125,
+          "8": 0.3125,
+          "16": 0.3078125,
+          "32": 0.32578125
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.306,
-        "win_rate": 0.9433333333333334,
-        "post_switch_mean_payoff": 0.2984375,
+      "control_full_history": {
+        "mean_payoff": 0.21550000000000002,
+        "win_rate": 0.6766666666666666,
+        "prediction_l1": 0.513545970753965,
+        "post_switch_mean_payoff": 0.2921875,
         "post_switch_window_diagnostics": {
           "4": 0.2875,
-          "8": 0.296875,
-          "16": 0.2984375,
-          "32": 0.315625
+          "8": 0.284375,
+          "16": 0.2921875,
+          "32": 0.29921875
         }
       },
-      "control": {
-        "mean_payoff": 0.27466666666666667,
+      "control_sliding_window": {
+        "mean_payoff": 0.2743333333333333,
         "win_rate": 0.88,
+        "prediction_l1": 0.16061634018155757,
         "post_switch_mean_payoff": 0.2734375,
         "post_switch_window_diagnostics": {
           "4": 0.2375,
           "8": 0.275,
           "16": 0.2734375,
           "32": 0.28671875
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.13283333333333333,
+        "win_rate": 0.5933333333333334,
+        "prediction_l1": 0.15160643611178787,
+        "post_switch_mean_payoff": 0.2609375,
+        "post_switch_window_diagnostics": {
+          "4": 0.24374999999999997,
+          "8": 0.25625,
+          "16": 0.2609375,
+          "32": 0.24765625
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.127,
+        "win_rate": 0.56,
+        "prediction_l1": 0.15929937827011753,
+        "post_switch_mean_payoff": 0.25,
+        "post_switch_window_diagnostics": {
+          "4": 0.14375,
+          "8": 0.22812500000000002,
+          "16": 0.25,
+          "32": 0.24687500000000004
         }
       }
     },
@@ -3436,36 +3698,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.18283333333333335,
-        "win_rate": 0.6566666666666666,
-        "post_switch_mean_payoff": 0.3328125,
+        "mean_payoff": 0.19066666666666668,
+        "win_rate": 0.68,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.328125,
         "post_switch_window_diagnostics": {
           "4": 0.3375,
           "8": 0.328125,
-          "16": 0.3328125,
-          "32": 0.328125
-        }
-      },
-      "control_shuffled_history": {
-        "mean_payoff": 0.30583333333333335,
-        "win_rate": 0.94,
-        "post_switch_mean_payoff": 0.328125,
-        "post_switch_window_diagnostics": {
-          "4": 0.3,
-          "8": 0.315625,
           "16": 0.328125,
-          "32": 0.33203125
+          "32": 0.32421875
         }
       },
-      "control": {
+      "control_full_history": {
+        "mean_payoff": 0.23516666666666666,
+        "win_rate": 0.7433333333333333,
+        "prediction_l1": 0.5198945449209504,
+        "post_switch_mean_payoff": 0.30625,
+        "post_switch_window_diagnostics": {
+          "4": 0.33125,
+          "8": 0.29375,
+          "16": 0.30625,
+          "32": 0.30546874999999996
+        }
+      },
+      "control_sliding_window": {
         "mean_payoff": 0.29300000000000004,
         "win_rate": 0.8666666666666667,
+        "prediction_l1": 0.1662900143334926,
         "post_switch_mean_payoff": 0.31093750000000003,
         "post_switch_window_diagnostics": {
           "4": 0.31875,
           "8": 0.34375,
           "16": 0.31093750000000003,
           "32": 0.2828125
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.14766666666666667,
+        "win_rate": 0.69,
+        "prediction_l1": 0.155982213658054,
+        "post_switch_mean_payoff": 0.2921875,
+        "post_switch_window_diagnostics": {
+          "4": 0.31875,
+          "8": 0.303125,
+          "16": 0.2921875,
+          "32": 0.25546875
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.13416666666666666,
+        "win_rate": 0.5966666666666667,
+        "prediction_l1": 0.16374978233382798,
+        "post_switch_mean_payoff": 0.2890625,
+        "post_switch_window_diagnostics": {
+          "4": 0.21875,
+          "8": 0.29374999999999996,
+          "16": 0.2890625,
+          "32": 0.25703125000000004
         }
       }
     },
@@ -3774,36 +4063,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.18166666666666667,
+        "mean_payoff": 0.18816666666666668,
         "win_rate": 0.64,
-        "post_switch_mean_payoff": 0.3203125,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.34375,
         "post_switch_window_diagnostics": {
           "4": 0.3375,
-          "8": 0.315625,
-          "16": 0.3203125,
-          "32": 0.30625
+          "8": 0.33125,
+          "16": 0.34375,
+          "32": 0.3328125
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.31316666666666665,
-        "win_rate": 0.9466666666666667,
-        "post_switch_mean_payoff": 0.3296875,
+      "control_full_history": {
+        "mean_payoff": 0.24300000000000002,
+        "win_rate": 0.77,
+        "prediction_l1": 0.5150601268762948,
+        "post_switch_mean_payoff": 0.2984375,
         "post_switch_window_diagnostics": {
-          "4": 0.31875,
-          "8": 0.309375,
-          "16": 0.3296875,
-          "32": 0.328125
+          "4": 0.3125,
+          "8": 0.296875,
+          "16": 0.2984375,
+          "32": 0.296875
         }
       },
-      "control": {
+      "control_sliding_window": {
         "mean_payoff": 0.25583333333333336,
         "win_rate": 0.8833333333333333,
+        "prediction_l1": 0.1623992673992674,
         "post_switch_mean_payoff": 0.31093750000000003,
         "post_switch_window_diagnostics": {
           "4": 0.2375,
           "8": 0.28125,
           "16": 0.31093750000000003,
           "32": 0.34843750000000007
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.15216666666666667,
+        "win_rate": 0.73,
+        "prediction_l1": 0.15059977583966644,
+        "post_switch_mean_payoff": 0.27187500000000003,
+        "post_switch_window_diagnostics": {
+          "4": 0.26875,
+          "8": 0.27499999999999997,
+          "16": 0.27187500000000003,
+          "32": 0.22578125000000002
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.15666666666666668,
+        "win_rate": 0.7066666666666667,
+        "prediction_l1": 0.16396485001711017,
+        "post_switch_mean_payoff": 0.2921875,
+        "post_switch_window_diagnostics": {
+          "4": 0.16249999999999998,
+          "8": 0.24375000000000002,
+          "16": 0.2921875,
+          "32": 0.309375
         }
       }
     },
@@ -4112,36 +4428,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.18833333333333332,
-        "win_rate": 0.6733333333333333,
-        "post_switch_mean_payoff": 0.31875000000000003,
+        "mean_payoff": 0.195,
+        "win_rate": 0.67,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.328125,
+        "post_switch_window_diagnostics": {
+          "4": 0.35,
+          "8": 0.321875,
+          "16": 0.328125,
+          "32": 0.3328125
+        }
+      },
+      "control_full_history": {
+        "mean_payoff": 0.22183333333333333,
+        "win_rate": 0.73,
+        "prediction_l1": 0.5129686769486966,
+        "post_switch_mean_payoff": 0.2984375,
         "post_switch_window_diagnostics": {
           "4": 0.30625,
-          "8": 0.3125,
-          "16": 0.31875000000000003,
-          "32": 0.32578125
+          "8": 0.284375,
+          "16": 0.2984375,
+          "32": 0.31640625
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.2945,
-        "win_rate": 0.95,
-        "post_switch_mean_payoff": 0.296875,
-        "post_switch_window_diagnostics": {
-          "4": 0.29375,
-          "8": 0.26875,
-          "16": 0.296875,
-          "32": 0.32421875
-        }
-      },
-      "control": {
+      "control_sliding_window": {
         "mean_payoff": 0.29150000000000004,
         "win_rate": 0.86,
+        "prediction_l1": 0.16327520305781174,
         "post_switch_mean_payoff": 0.2875,
         "post_switch_window_diagnostics": {
           "4": 0.30624999999999997,
           "8": 0.33125,
           "16": 0.2875,
           "32": 0.30234375
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.14049999999999999,
+        "win_rate": 0.6633333333333333,
+        "prediction_l1": 0.15134739477166398,
+        "post_switch_mean_payoff": 0.221875,
+        "post_switch_window_diagnostics": {
+          "4": 0.26875,
+          "8": 0.321875,
+          "16": 0.221875,
+          "32": 0.1578125
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.11183333333333333,
+        "win_rate": 0.6166666666666667,
+        "prediction_l1": 0.1607386988093486,
+        "post_switch_mean_payoff": 0.26406250000000003,
+        "post_switch_window_diagnostics": {
+          "4": 0.2125,
+          "8": 0.284375,
+          "16": 0.26406250000000003,
+          "32": 0.221875
         }
       }
     },
@@ -4450,36 +4793,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.18966666666666665,
-        "win_rate": 0.66,
-        "post_switch_mean_payoff": 0.33125,
+        "mean_payoff": 0.19599999999999998,
+        "win_rate": 0.6666666666666666,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.3328125,
         "post_switch_window_diagnostics": {
           "4": 0.30625,
-          "8": 0.30625,
-          "16": 0.33125,
-          "32": 0.340625
+          "8": 0.328125,
+          "16": 0.3328125,
+          "32": 0.3359375
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.31233333333333335,
-        "win_rate": 0.9533333333333334,
-        "post_switch_mean_payoff": 0.3265625,
+      "control_full_history": {
+        "mean_payoff": 0.26633333333333337,
+        "win_rate": 0.8033333333333333,
+        "prediction_l1": 0.5107769118779008,
+        "post_switch_mean_payoff": 0.303125,
         "post_switch_window_diagnostics": {
-          "4": 0.3375,
-          "8": 0.303125,
-          "16": 0.3265625,
-          "32": 0.3375
+          "4": 0.275,
+          "8": 0.271875,
+          "16": 0.303125,
+          "32": 0.321875
         }
       },
-      "control": {
-        "mean_payoff": 0.2941666666666667,
+      "control_sliding_window": {
+        "mean_payoff": 0.29433333333333334,
         "win_rate": 0.8666666666666667,
+        "prediction_l1": 0.16124542124542124,
         "post_switch_mean_payoff": 0.3515625,
         "post_switch_window_diagnostics": {
           "4": 0.29375,
           "8": 0.31875000000000003,
           "16": 0.3515625,
           "32": 0.36953125
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.17633333333333334,
+        "win_rate": 0.6866666666666666,
+        "prediction_l1": 0.14887508575523867,
+        "post_switch_mean_payoff": 0.2890625,
+        "post_switch_window_diagnostics": {
+          "4": 0.2875,
+          "8": 0.28750000000000003,
+          "16": 0.2890625,
+          "32": 0.3125
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.19416666666666665,
+        "win_rate": 0.6733333333333333,
+        "prediction_l1": 0.16310007540747865,
+        "post_switch_mean_payoff": 0.3484375,
+        "post_switch_window_diagnostics": {
+          "4": 0.28125,
+          "8": 0.3125,
+          "16": 0.3484375,
+          "32": 0.3609375
         }
       }
     },
@@ -4788,36 +5158,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.1945,
-        "win_rate": 0.65,
-        "post_switch_mean_payoff": 0.3484375,
+        "mean_payoff": 0.191,
+        "win_rate": 0.66,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.3390625,
         "post_switch_window_diagnostics": {
-          "4": 0.38749999999999996,
-          "8": 0.384375,
-          "16": 0.3484375,
-          "32": 0.33125
+          "4": 0.38125,
+          "8": 0.365625,
+          "16": 0.3390625,
+          "32": 0.32968749999999997
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.31866666666666665,
-        "win_rate": 0.97,
-        "post_switch_mean_payoff": 0.309375,
+      "control_full_history": {
+        "mean_payoff": 0.25483333333333336,
+        "win_rate": 0.7866666666666666,
+        "prediction_l1": 0.5160568017484058,
+        "post_switch_mean_payoff": 0.328125,
         "post_switch_window_diagnostics": {
-          "4": 0.34375,
-          "8": 0.31875,
-          "16": 0.309375,
-          "32": 0.3296875
+          "4": 0.375,
+          "8": 0.35625,
+          "16": 0.328125,
+          "32": 0.32421875
         }
       },
-      "control": {
-        "mean_payoff": 0.2931666666666667,
+      "control_sliding_window": {
+        "mean_payoff": 0.29283333333333333,
         "win_rate": 0.8833333333333333,
+        "prediction_l1": 0.1638087275043797,
         "post_switch_mean_payoff": 0.3375,
         "post_switch_window_diagnostics": {
           "4": 0.33125,
           "8": 0.33125,
           "16": 0.3375,
           "32": 0.33359375
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.16983333333333334,
+        "win_rate": 0.7433333333333333,
+        "prediction_l1": 0.15395207882879694,
+        "post_switch_mean_payoff": 0.30781250000000004,
+        "post_switch_window_diagnostics": {
+          "4": 0.25,
+          "8": 0.325,
+          "16": 0.30781250000000004,
+          "32": 0.28046875000000004
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.1845,
+        "win_rate": 0.66,
+        "prediction_l1": 0.16531328714890392,
+        "post_switch_mean_payoff": 0.321875,
+        "post_switch_window_diagnostics": {
+          "4": 0.27499999999999997,
+          "8": 0.303125,
+          "16": 0.321875,
+          "32": 0.28515625
         }
       }
     },
@@ -5126,36 +5523,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.18933333333333333,
+        "mean_payoff": 0.192,
         "win_rate": 0.67,
-        "post_switch_mean_payoff": 0.3171875,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.33437500000000003,
+        "post_switch_window_diagnostics": {
+          "4": 0.33125,
+          "8": 0.334375,
+          "16": 0.33437500000000003,
+          "32": 0.33515625
+        }
+      },
+      "control_full_history": {
+        "mean_payoff": 0.21333333333333335,
+        "win_rate": 0.68,
+        "prediction_l1": 0.5149990230782402,
+        "post_switch_mean_payoff": 0.315625,
         "post_switch_window_diagnostics": {
           "4": 0.2875,
-          "8": 0.315625,
-          "16": 0.3171875,
-          "32": 0.32265625
+          "8": 0.309375,
+          "16": 0.315625,
+          "32": 0.315625
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.3046666666666667,
-        "win_rate": 0.9433333333333334,
-        "post_switch_mean_payoff": 0.31875,
-        "post_switch_window_diagnostics": {
-          "4": 0.225,
-          "8": 0.290625,
-          "16": 0.31875,
-          "32": 0.32421875
-        }
-      },
-      "control": {
+      "control_sliding_window": {
         "mean_payoff": 0.2828333333333334,
         "win_rate": 0.8666666666666667,
+        "prediction_l1": 0.1651369644847906,
         "post_switch_mean_payoff": 0.32343750000000004,
         "post_switch_window_diagnostics": {
           "4": 0.19374999999999998,
           "8": 0.27187500000000003,
           "16": 0.32343750000000004,
           "32": 0.35468750000000004
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.147,
+        "win_rate": 0.5733333333333334,
+        "prediction_l1": 0.15257417382832725,
+        "post_switch_mean_payoff": 0.2953125,
+        "post_switch_window_diagnostics": {
+          "4": 0.26875,
+          "8": 0.28125,
+          "16": 0.2953125,
+          "32": 0.28203125
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.14766666666666667,
+        "win_rate": 0.5166666666666667,
+        "prediction_l1": 0.16379381998025683,
+        "post_switch_mean_payoff": 0.3125,
+        "post_switch_window_diagnostics": {
+          "4": 0.15000000000000002,
+          "8": 0.25,
+          "16": 0.3125,
+          "32": 0.28984375
         }
       }
     },
@@ -5464,36 +5888,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.1905,
-        "win_rate": 0.6633333333333333,
-        "post_switch_mean_payoff": 0.3234375,
+        "mean_payoff": 0.18933333333333333,
+        "win_rate": 0.6666666666666666,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.315625,
         "post_switch_window_diagnostics": {
-          "4": 0.325,
-          "8": 0.328125,
-          "16": 0.3234375,
-          "32": 0.31796875
-        }
-      },
-      "control_shuffled_history": {
-        "mean_payoff": 0.29183333333333333,
-        "win_rate": 0.96,
-        "post_switch_mean_payoff": 0.3,
-        "post_switch_window_diagnostics": {
-          "4": 0.2875,
-          "8": 0.303125,
-          "16": 0.3,
+          "4": 0.33125,
+          "8": 0.31875,
+          "16": 0.315625,
           "32": 0.3109375
         }
       },
-      "control": {
-        "mean_payoff": 0.26016666666666666,
+      "control_full_history": {
+        "mean_payoff": 0.2275,
+        "win_rate": 0.7066666666666667,
+        "prediction_l1": 0.5106401727384862,
+        "post_switch_mean_payoff": 0.3046875,
+        "post_switch_window_diagnostics": {
+          "4": 0.29375,
+          "8": 0.29375,
+          "16": 0.3046875,
+          "32": 0.29921875000000003
+        }
+      },
+      "control_sliding_window": {
+        "mean_payoff": 0.2605,
         "win_rate": 0.8366666666666667,
+        "prediction_l1": 0.1602444656792483,
         "post_switch_mean_payoff": 0.3265625,
         "post_switch_window_diagnostics": {
           "4": 0.20625,
           "8": 0.28125,
           "16": 0.3265625,
           "32": 0.34765625
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.151,
+        "win_rate": 0.6266666666666667,
+        "prediction_l1": 0.15019584913848663,
+        "post_switch_mean_payoff": 0.2421875,
+        "post_switch_window_diagnostics": {
+          "4": 0.24999999999999997,
+          "8": 0.28125,
+          "16": 0.2421875,
+          "32": 0.2453125
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.14916666666666667,
+        "win_rate": 0.61,
+        "prediction_l1": 0.1595843906511002,
+        "post_switch_mean_payoff": 0.315625,
+        "post_switch_window_diagnostics": {
+          "4": 0.1625,
+          "8": 0.25937499999999997,
+          "16": 0.315625,
+          "32": 0.28203125
         }
       }
     },
@@ -5802,36 +6253,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.19116666666666668,
-        "win_rate": 0.6833333333333333,
+        "mean_payoff": 0.19066666666666668,
+        "win_rate": 0.68,
+        "prediction_l1": null,
         "post_switch_mean_payoff": 0.3390625,
         "post_switch_window_diagnostics": {
-          "4": 0.31875,
-          "8": 0.3375,
-          "16": 0.3390625,
-          "32": 0.34375
-        }
-      },
-      "control_shuffled_history": {
-        "mean_payoff": 0.30766666666666664,
-        "win_rate": 0.9466666666666667,
-        "post_switch_mean_payoff": 0.334375,
-        "post_switch_window_diagnostics": {
-          "4": 0.38125,
+          "4": 0.34375,
           "8": 0.35,
-          "16": 0.334375,
-          "32": 0.340625
+          "16": 0.3390625,
+          "32": 0.33984375
         }
       },
-      "control": {
-        "mean_payoff": 0.2668333333333333,
+      "control_full_history": {
+        "mean_payoff": 0.2775,
+        "win_rate": 0.9133333333333333,
+        "prediction_l1": 0.5172609532591546,
+        "post_switch_mean_payoff": 0.2953125,
+        "post_switch_window_diagnostics": {
+          "4": 0.2875,
+          "8": 0.3,
+          "16": 0.2953125,
+          "32": 0.3
+        }
+      },
+      "control_sliding_window": {
+        "mean_payoff": 0.26716666666666666,
         "win_rate": 0.8433333333333334,
+        "prediction_l1": 0.16114588310240485,
         "post_switch_mean_payoff": 0.33593750000000006,
         "post_switch_window_diagnostics": {
           "4": 0.275,
           "8": 0.309375,
           "16": 0.33593750000000006,
           "32": 0.33593750000000006
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.16683333333333336,
+        "win_rate": 0.6733333333333333,
+        "prediction_l1": 0.15213780654181963,
+        "post_switch_mean_payoff": 0.30312500000000003,
+        "post_switch_window_diagnostics": {
+          "4": 0.28125,
+          "8": 0.33437500000000003,
+          "16": 0.30312500000000003,
+          "32": 0.271875
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.19383333333333333,
+        "win_rate": 0.7333333333333333,
+        "prediction_l1": 0.16195540520391496,
+        "post_switch_mean_payoff": 0.278125,
+        "post_switch_window_diagnostics": {
+          "4": 0.15000000000000002,
+          "8": 0.246875,
+          "16": 0.278125,
+          "32": 0.2703125
         }
       }
     },
@@ -6140,36 +6618,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.19266666666666665,
-        "win_rate": 0.6833333333333333,
-        "post_switch_mean_payoff": 0.3125,
+        "mean_payoff": 0.19716666666666666,
+        "win_rate": 0.6733333333333333,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.334375,
         "post_switch_window_diagnostics": {
-          "4": 0.33125,
-          "8": 0.303125,
-          "16": 0.3125,
-          "32": 0.32421875
+          "4": 0.3,
+          "8": 0.33125,
+          "16": 0.334375,
+          "32": 0.33828125
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.2765,
-        "win_rate": 0.9433333333333334,
-        "post_switch_mean_payoff": 0.31562500000000004,
+      "control_full_history": {
+        "mean_payoff": 0.21699999999999997,
+        "win_rate": 0.69,
+        "prediction_l1": 0.5229278157934777,
+        "post_switch_mean_payoff": 0.3046875,
         "post_switch_window_diagnostics": {
-          "4": 0.33125,
-          "8": 0.309375,
-          "16": 0.31562500000000004,
-          "32": 0.31953125
+          "4": 0.275,
+          "8": 0.2875,
+          "16": 0.3046875,
+          "32": 0.3234375
         }
       },
-      "control": {
-        "mean_payoff": 0.2733333333333333,
+      "control_sliding_window": {
+        "mean_payoff": 0.2728333333333333,
         "win_rate": 0.89,
+        "prediction_l1": 0.1672439878961618,
         "post_switch_mean_payoff": 0.37343750000000003,
         "post_switch_window_diagnostics": {
           "4": 0.3,
           "8": 0.296875,
           "16": 0.37343750000000003,
           "32": 0.32343750000000004
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.14783333333333334,
+        "win_rate": 0.68,
+        "prediction_l1": 0.1578172481174929,
+        "post_switch_mean_payoff": 0.3140625,
+        "post_switch_window_diagnostics": {
+          "4": 0.32499999999999996,
+          "8": 0.3125,
+          "16": 0.3140625,
+          "32": 0.2390625
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.15683333333333335,
+        "win_rate": 0.6133333333333333,
+        "prediction_l1": 0.16731286295032705,
+        "post_switch_mean_payoff": 0.3640625,
+        "post_switch_window_diagnostics": {
+          "4": 0.2625,
+          "8": 0.278125,
+          "16": 0.3640625,
+          "32": 0.29375
         }
       }
     },
@@ -6478,36 +6983,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.19633333333333333,
-        "win_rate": 0.69,
-        "post_switch_mean_payoff": 0.346875,
+        "mean_payoff": 0.1855,
+        "win_rate": 0.6666666666666666,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.328125,
         "post_switch_window_diagnostics": {
-          "4": 0.3625,
-          "8": 0.35625,
-          "16": 0.346875,
-          "32": 0.3390625
+          "4": 0.30625,
+          "8": 0.328125,
+          "16": 0.328125,
+          "32": 0.33671875
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.31733333333333336,
-        "win_rate": 0.9633333333333334,
-        "post_switch_mean_payoff": 0.34375,
+      "control_full_history": {
+        "mean_payoff": 0.26699999999999996,
+        "win_rate": 0.8333333333333334,
+        "prediction_l1": 0.5112340207361262,
+        "post_switch_mean_payoff": 0.309375,
         "post_switch_window_diagnostics": {
-          "4": 0.33125,
-          "8": 0.34687500000000004,
-          "16": 0.34375,
-          "32": 0.35546875
+          "4": 0.30625,
+          "8": 0.296875,
+          "16": 0.309375,
+          "32": 0.31328125
         }
       },
-      "control": {
+      "control_sliding_window": {
         "mean_payoff": 0.31416666666666665,
         "win_rate": 0.8666666666666667,
+        "prediction_l1": 0.15905478579391624,
         "post_switch_mean_payoff": 0.3015625,
         "post_switch_window_diagnostics": {
           "4": 0.29375,
           "8": 0.29375,
           "16": 0.3015625,
           "32": 0.309375
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.18116666666666667,
+        "win_rate": 0.6966666666666667,
+        "prediction_l1": 0.1473252510752809,
+        "post_switch_mean_payoff": 0.2578125,
+        "post_switch_window_diagnostics": {
+          "4": 0.25625,
+          "8": 0.28125,
+          "16": 0.2578125,
+          "32": 0.265625
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.18716666666666668,
+        "win_rate": 0.67,
+        "prediction_l1": 0.16150657092521484,
+        "post_switch_mean_payoff": 0.296875,
+        "post_switch_window_diagnostics": {
+          "4": 0.275,
+          "8": 0.284375,
+          "16": 0.296875,
+          "32": 0.30390625
         }
       }
     },
@@ -6816,36 +7348,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.18916666666666668,
-        "win_rate": 0.6566666666666666,
-        "post_switch_mean_payoff": 0.3328125,
+        "mean_payoff": 0.18583333333333332,
+        "win_rate": 0.65,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.33125000000000004,
         "post_switch_window_diagnostics": {
-          "4": 0.3625,
-          "8": 0.35624999999999996,
-          "16": 0.3328125,
-          "32": 0.33828125
+          "4": 0.33125,
+          "8": 0.34062499999999996,
+          "16": 0.33125000000000004,
+          "32": 0.3265625
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.3028333333333333,
-        "win_rate": 0.9666666666666667,
-        "post_switch_mean_payoff": 0.3359375,
+      "control_full_history": {
+        "mean_payoff": 0.23983333333333334,
+        "win_rate": 0.82,
+        "prediction_l1": 0.5226878920510946,
+        "post_switch_mean_payoff": 0.31875,
         "post_switch_window_diagnostics": {
-          "4": 0.26249999999999996,
-          "8": 0.328125,
-          "16": 0.3359375,
-          "32": 0.34296875000000004
+          "4": 0.2875,
+          "8": 0.321875,
+          "16": 0.31875,
+          "32": 0.32734375
         }
       },
-      "control": {
+      "control_sliding_window": {
         "mean_payoff": 0.2875,
         "win_rate": 0.8633333333333333,
+        "prediction_l1": 0.16405000796305144,
         "post_switch_mean_payoff": 0.284375,
         "post_switch_window_diagnostics": {
           "4": 0.2375,
           "8": 0.29375,
           "16": 0.284375,
           "32": 0.29453124999999997
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.2215,
+        "win_rate": 0.8,
+        "prediction_l1": 0.1548953373938215,
+        "post_switch_mean_payoff": 0.30624999999999997,
+        "post_switch_window_diagnostics": {
+          "4": 0.26875,
+          "8": 0.325,
+          "16": 0.30624999999999997,
+          "32": 0.29453124999999997
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.175,
+        "win_rate": 0.7066666666666667,
+        "prediction_l1": 0.16514985116167305,
+        "post_switch_mean_payoff": 0.26875,
+        "post_switch_window_diagnostics": {
+          "4": 0.175,
+          "8": 0.2625,
+          "16": 0.26875,
+          "32": 0.26875
         }
       }
     },
@@ -7154,36 +7713,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.19133333333333333,
-        "win_rate": 0.6666666666666666,
-        "post_switch_mean_payoff": 0.34218750000000003,
+        "mean_payoff": 0.19033333333333333,
+        "win_rate": 0.66,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.31562500000000004,
         "post_switch_window_diagnostics": {
           "4": 0.35625,
-          "8": 0.3625,
-          "16": 0.34218750000000003,
-          "32": 0.33828125000000003
+          "8": 0.340625,
+          "16": 0.31562500000000004,
+          "32": 0.31953125000000004
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.3071666666666667,
-        "win_rate": 0.9533333333333334,
-        "post_switch_mean_payoff": 0.3203125,
+      "control_full_history": {
+        "mean_payoff": 0.24383333333333335,
+        "win_rate": 0.76,
+        "prediction_l1": 0.5131524360544325,
+        "post_switch_mean_payoff": 0.30624999999999997,
         "post_switch_window_diagnostics": {
-          "4": 0.28125,
-          "8": 0.3,
-          "16": 0.3203125,
-          "32": 0.32578125
+          "4": 0.3125,
+          "8": 0.3125,
+          "16": 0.30624999999999997,
+          "32": 0.29921875
         }
       },
-      "control": {
-        "mean_payoff": 0.24683333333333332,
-        "win_rate": 0.81,
+      "control_sliding_window": {
+        "mean_payoff": 0.24733333333333335,
+        "win_rate": 0.8133333333333334,
+        "prediction_l1": 0.16216196846631628,
         "post_switch_mean_payoff": 0.340625,
         "post_switch_window_diagnostics": {
           "4": 0.29375,
           "8": 0.2875,
           "16": 0.340625,
           "32": 0.28828125
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.1345,
+        "win_rate": 0.6033333333333334,
+        "prediction_l1": 0.15450118858756812,
+        "post_switch_mean_payoff": 0.278125,
+        "post_switch_window_diagnostics": {
+          "4": 0.2875,
+          "8": 0.29062499999999997,
+          "16": 0.278125,
+          "32": 0.221875
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.16233333333333333,
+        "win_rate": 0.62,
+        "prediction_l1": 0.1585381765386317,
+        "post_switch_mean_payoff": 0.321875,
+        "post_switch_window_diagnostics": {
+          "4": 0.19999999999999998,
+          "8": 0.240625,
+          "16": 0.321875,
+          "32": 0.28359375000000003
         }
       }
     },
@@ -7492,36 +8078,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.19683333333333333,
+        "mean_payoff": 0.19016666666666665,
         "win_rate": 0.6733333333333333,
-        "post_switch_mean_payoff": 0.32343750000000004,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.3328125,
         "post_switch_window_diagnostics": {
-          "4": 0.25625,
-          "8": 0.2875,
-          "16": 0.32343750000000004,
-          "32": 0.32890624999999996
+          "4": 0.35,
+          "8": 0.34375,
+          "16": 0.3328125,
+          "32": 0.325
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.29133333333333333,
-        "win_rate": 0.92,
-        "post_switch_mean_payoff": 0.321875,
+      "control_full_history": {
+        "mean_payoff": 0.2345,
+        "win_rate": 0.7666666666666667,
+        "prediction_l1": 0.5211693052924028,
+        "post_switch_mean_payoff": 0.30781250000000004,
         "post_switch_window_diagnostics": {
-          "4": 0.275,
-          "8": 0.265625,
-          "16": 0.321875,
-          "32": 0.32109375
+          "4": 0.24375,
+          "8": 0.2625,
+          "16": 0.30781250000000004,
+          "32": 0.30859375
         }
       },
-      "control": {
+      "control_sliding_window": {
         "mean_payoff": 0.2806666666666667,
         "win_rate": 0.9233333333333333,
+        "prediction_l1": 0.16531055900621117,
         "post_switch_mean_payoff": 0.340625,
         "post_switch_window_diagnostics": {
           "4": 0.26875,
           "8": 0.30937499999999996,
           "16": 0.340625,
           "32": 0.32578125
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.14033333333333334,
+        "win_rate": 0.6533333333333333,
+        "prediction_l1": 0.15737952465035915,
+        "post_switch_mean_payoff": 0.2875,
+        "post_switch_window_diagnostics": {
+          "4": 0.2875,
+          "8": 0.265625,
+          "16": 0.2875,
+          "32": 0.234375
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.1265,
+        "win_rate": 0.6633333333333333,
+        "prediction_l1": 0.16516363721206576,
+        "post_switch_mean_payoff": 0.31562500000000004,
+        "post_switch_window_diagnostics": {
+          "4": 0.16875,
+          "8": 0.25937499999999997,
+          "16": 0.31562500000000004,
+          "32": 0.23671875
         }
       }
     },
@@ -7830,36 +8443,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.187,
-        "win_rate": 0.66,
-        "post_switch_mean_payoff": 0.3203125,
-        "post_switch_window_diagnostics": {
-          "4": 0.3375,
-          "8": 0.33125,
-          "16": 0.3203125,
-          "32": 0.31640625
-        }
-      },
-      "control_shuffled_history": {
-        "mean_payoff": 0.30866666666666664,
-        "win_rate": 0.9666666666666667,
-        "post_switch_mean_payoff": 0.3171875,
+        "mean_payoff": 0.18416666666666667,
+        "win_rate": 0.6366666666666667,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.325,
         "post_switch_window_diagnostics": {
           "4": 0.31875,
-          "8": 0.325,
-          "16": 0.3171875,
-          "32": 0.31875
+          "8": 0.315625,
+          "16": 0.325,
+          "32": 0.31796875
         }
       },
-      "control": {
+      "control_full_history": {
+        "mean_payoff": 0.25066666666666665,
+        "win_rate": 0.8233333333333334,
+        "prediction_l1": 0.5055267063877882,
+        "post_switch_mean_payoff": 0.2984375,
+        "post_switch_window_diagnostics": {
+          "4": 0.30625,
+          "8": 0.303125,
+          "16": 0.2984375,
+          "32": 0.3078125
+        }
+      },
+      "control_sliding_window": {
         "mean_payoff": 0.2803333333333333,
         "win_rate": 0.85,
+        "prediction_l1": 0.1569652810957159,
         "post_switch_mean_payoff": 0.3765625,
         "post_switch_window_diagnostics": {
           "4": 0.3125,
           "8": 0.296875,
           "16": 0.3765625,
           "32": 0.32734375
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.12483333333333334,
+        "win_rate": 0.64,
+        "prediction_l1": 0.14546458359426234,
+        "post_switch_mean_payoff": 0.29374999999999996,
+        "post_switch_window_diagnostics": {
+          "4": 0.3125,
+          "8": 0.33125000000000004,
+          "16": 0.29374999999999996,
+          "32": 0.24921875000000002
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.16583333333333333,
+        "win_rate": 0.7,
+        "prediction_l1": 0.15531490565992626,
+        "post_switch_mean_payoff": 0.34687500000000004,
+        "post_switch_window_diagnostics": {
+          "4": 0.19375,
+          "8": 0.23750000000000002,
+          "16": 0.34687500000000004,
+          "32": 0.29296875
         }
       }
     },
@@ -8168,36 +8808,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.1895,
-        "win_rate": 0.67,
-        "post_switch_mean_payoff": 0.3484375,
+        "mean_payoff": 0.18583333333333332,
+        "win_rate": 0.6533333333333333,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.3453125,
         "post_switch_window_diagnostics": {
           "4": 0.31875,
-          "8": 0.353125,
-          "16": 0.3484375,
-          "32": 0.32578125
+          "8": 0.340625,
+          "16": 0.3453125,
+          "32": 0.3484375
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.30033333333333334,
-        "win_rate": 0.9466666666666667,
-        "post_switch_mean_payoff": 0.30312500000000003,
+      "control_full_history": {
+        "mean_payoff": 0.23183333333333334,
+        "win_rate": 0.7533333333333333,
+        "prediction_l1": 0.5186702927631868,
+        "post_switch_mean_payoff": 0.3125,
         "post_switch_window_diagnostics": {
-          "4": 0.28125,
-          "8": 0.275,
-          "16": 0.30312500000000003,
-          "32": 0.3234375
+          "4": 0.2875,
+          "8": 0.29375,
+          "16": 0.3125,
+          "32": 0.31484375
         }
       },
-      "control": {
+      "control_sliding_window": {
         "mean_payoff": 0.26,
         "win_rate": 0.8333333333333334,
+        "prediction_l1": 0.1655303392259914,
         "post_switch_mean_payoff": 0.240625,
         "post_switch_window_diagnostics": {
           "4": 0.24375,
           "8": 0.26875,
           "16": 0.240625,
           "32": 0.25078125
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.1345,
+        "win_rate": 0.6833333333333333,
+        "prediction_l1": 0.15445189464800874,
+        "post_switch_mean_payoff": 0.25,
+        "post_switch_window_diagnostics": {
+          "4": 0.28125,
+          "8": 0.303125,
+          "16": 0.25,
+          "32": 0.17578125000000003
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.11216666666666666,
+        "win_rate": 0.6033333333333334,
+        "prediction_l1": 0.16621779517569915,
+        "post_switch_mean_payoff": 0.2203125,
+        "post_switch_window_diagnostics": {
+          "4": 0.1625,
+          "8": 0.22812499999999997,
+          "16": 0.2203125,
+          "32": 0.159375
         }
       }
     },
@@ -8506,36 +9173,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.17933333333333332,
-        "win_rate": 0.63,
-        "post_switch_mean_payoff": 0.340625,
+        "mean_payoff": 0.18166666666666667,
+        "win_rate": 0.6366666666666667,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.3421875,
         "post_switch_window_diagnostics": {
-          "4": 0.34375,
-          "8": 0.33437500000000003,
-          "16": 0.340625,
-          "32": 0.328125
+          "4": 0.35,
+          "8": 0.328125,
+          "16": 0.3421875,
+          "32": 0.32890625
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.32949999999999996,
-        "win_rate": 0.9866666666666667,
-        "post_switch_mean_payoff": 0.296875,
+      "control_full_history": {
+        "mean_payoff": 0.328,
+        "win_rate": 0.9566666666666667,
+        "prediction_l1": 0.5119572774959891,
+        "post_switch_mean_payoff": 0.3515625,
         "post_switch_window_diagnostics": {
           "4": 0.31875,
-          "8": 0.25625,
-          "16": 0.296875,
-          "32": 0.31484375
+          "8": 0.3375,
+          "16": 0.3515625,
+          "32": 0.35
         }
       },
-      "control": {
+      "control_sliding_window": {
         "mean_payoff": 0.3348333333333333,
         "win_rate": 0.91,
+        "prediction_l1": 0.1585770027074375,
         "post_switch_mean_payoff": 0.3234375,
         "post_switch_window_diagnostics": {
           "4": 0.3,
           "8": 0.34062499999999996,
           "16": 0.3234375,
           "32": 0.32734375000000004
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.245,
+        "win_rate": 0.79,
+        "prediction_l1": 0.14822783626034852,
+        "post_switch_mean_payoff": 0.340625,
+        "post_switch_window_diagnostics": {
+          "4": 0.30624999999999997,
+          "8": 0.35625,
+          "16": 0.340625,
+          "32": 0.25859375
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.24166666666666667,
+        "win_rate": 0.7866666666666666,
+        "prediction_l1": 0.16038935511882532,
+        "post_switch_mean_payoff": 0.29843749999999997,
+        "post_switch_window_diagnostics": {
+          "4": 0.2,
+          "8": 0.29062499999999997,
+          "16": 0.29843749999999997,
+          "32": 0.2375
         }
       }
     },
@@ -8844,36 +9538,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.18783333333333332,
-        "win_rate": 0.67,
-        "post_switch_mean_payoff": 0.321875,
-        "post_switch_window_diagnostics": {
-          "4": 0.29375,
-          "8": 0.315625,
-          "16": 0.321875,
-          "32": 0.32578125
-        }
-      },
-      "control_shuffled_history": {
-        "mean_payoff": 0.3221666666666667,
-        "win_rate": 0.9833333333333333,
-        "post_switch_mean_payoff": 0.31875,
+        "mean_payoff": 0.19133333333333333,
+        "win_rate": 0.6666666666666666,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.3359375,
         "post_switch_window_diagnostics": {
           "4": 0.3,
-          "8": 0.30625,
-          "16": 0.31875,
-          "32": 0.33203125
+          "8": 0.31875000000000003,
+          "16": 0.3359375,
+          "32": 0.3171875
         }
       },
-      "control": {
-        "mean_payoff": 0.29300000000000004,
-        "win_rate": 0.89,
+      "control_full_history": {
+        "mean_payoff": 0.22983333333333333,
+        "win_rate": 0.76,
+        "prediction_l1": 0.510024537700528,
+        "post_switch_mean_payoff": 0.3046875,
+        "post_switch_window_diagnostics": {
+          "4": 0.29375,
+          "8": 0.29375,
+          "16": 0.3046875,
+          "32": 0.309375
+        }
+      },
+      "control_sliding_window": {
+        "mean_payoff": 0.2921666666666667,
+        "win_rate": 0.8866666666666667,
+        "prediction_l1": 0.1601202420767638,
         "post_switch_mean_payoff": 0.29375,
         "post_switch_window_diagnostics": {
           "4": 0.24375,
           "8": 0.29062499999999997,
           "16": 0.29375,
           "32": 0.2984375
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.15183333333333332,
+        "win_rate": 0.6933333333333334,
+        "prediction_l1": 0.14816551020334653,
+        "post_switch_mean_payoff": 0.2453125,
+        "post_switch_window_diagnostics": {
+          "4": 0.24999999999999997,
+          "8": 0.25312500000000004,
+          "16": 0.2453125,
+          "32": 0.225
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.12150000000000001,
+        "win_rate": 0.6066666666666667,
+        "prediction_l1": 0.1592484829817746,
+        "post_switch_mean_payoff": 0.24843749999999998,
+        "post_switch_window_diagnostics": {
+          "4": 0.13125,
+          "8": 0.23437499999999997,
+          "16": 0.24843749999999998,
+          "32": 0.22734375
         }
       }
     },
@@ -9182,36 +9903,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.18533333333333335,
-        "win_rate": 0.6566666666666666,
+        "mean_payoff": 0.19216666666666665,
+        "win_rate": 0.6766666666666666,
+        "prediction_l1": null,
         "post_switch_mean_payoff": 0.3359375,
         "post_switch_window_diagnostics": {
-          "4": 0.35625,
-          "8": 0.353125,
+          "4": 0.34375,
+          "8": 0.3625,
           "16": 0.3359375,
-          "32": 0.33046875
+          "32": 0.33125
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.3055,
-        "win_rate": 0.9233333333333333,
+      "control_full_history": {
+        "mean_payoff": 0.24516666666666664,
+        "win_rate": 0.77,
+        "prediction_l1": 0.5287285398507747,
         "post_switch_mean_payoff": 0.3109375,
         "post_switch_window_diagnostics": {
-          "4": 0.3375,
-          "8": 0.31562500000000004,
+          "4": 0.34375,
+          "8": 0.33125,
           "16": 0.3109375,
-          "32": 0.33046875
+          "32": 0.31015624999999997
         }
       },
-      "control": {
-        "mean_payoff": 0.2956666666666667,
+      "control_sliding_window": {
+        "mean_payoff": 0.29533333333333334,
         "win_rate": 0.8866666666666667,
+        "prediction_l1": 0.16475951584647236,
         "post_switch_mean_payoff": 0.3359375,
         "post_switch_window_diagnostics": {
           "4": 0.3125,
           "8": 0.303125,
           "16": 0.3359375,
           "32": 0.3515625
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.14633333333333332,
+        "win_rate": 0.6233333333333333,
+        "prediction_l1": 0.15488042124936416,
+        "post_switch_mean_payoff": 0.28125,
+        "post_switch_window_diagnostics": {
+          "4": 0.28125,
+          "8": 0.2875,
+          "16": 0.28125,
+          "32": 0.24609374999999997
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.16566666666666668,
+        "win_rate": 0.6366666666666667,
+        "prediction_l1": 0.16584332960664694,
+        "post_switch_mean_payoff": 0.2890625,
+        "post_switch_window_diagnostics": {
+          "4": 0.15625,
+          "8": 0.22499999999999998,
+          "16": 0.2890625,
+          "32": 0.26328124999999997
         }
       }
     },
@@ -9520,36 +10268,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.19716666666666666,
-        "win_rate": 0.6733333333333333,
-        "post_switch_mean_payoff": 0.3453125,
+        "mean_payoff": 0.19266666666666665,
+        "win_rate": 0.6766666666666666,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.3265625,
         "post_switch_window_diagnostics": {
-          "4": 0.30625,
-          "8": 0.340625,
-          "16": 0.3453125,
-          "32": 0.34375
+          "4": 0.2875,
+          "8": 0.325,
+          "16": 0.3265625,
+          "32": 0.33984375
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.2846666666666667,
-        "win_rate": 0.9466666666666667,
-        "post_switch_mean_payoff": 0.325,
+      "control_full_history": {
+        "mean_payoff": 0.21216666666666667,
+        "win_rate": 0.7,
+        "prediction_l1": 0.5206079322965587,
+        "post_switch_mean_payoff": 0.290625,
         "post_switch_window_diagnostics": {
-          "4": 0.3,
-          "8": 0.321875,
-          "16": 0.325,
-          "32": 0.34375
+          "4": 0.275,
+          "8": 0.271875,
+          "16": 0.290625,
+          "32": 0.3125
         }
       },
-      "control": {
+      "control_sliding_window": {
         "mean_payoff": 0.29300000000000004,
         "win_rate": 0.8666666666666667,
+        "prediction_l1": 0.16121993948080904,
         "post_switch_mean_payoff": 0.3359375,
         "post_switch_window_diagnostics": {
           "4": 0.2625,
           "8": 0.271875,
           "16": 0.3359375,
           "32": 0.38515625000000003
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.1401666666666667,
+        "win_rate": 0.56,
+        "prediction_l1": 0.15052576091945813,
+        "post_switch_mean_payoff": 0.278125,
+        "post_switch_window_diagnostics": {
+          "4": 0.26875,
+          "8": 0.290625,
+          "16": 0.278125,
+          "32": 0.278125
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.15566666666666668,
+        "win_rate": 0.63,
+        "prediction_l1": 0.16390815436808837,
+        "post_switch_mean_payoff": 0.3234375,
+        "post_switch_window_diagnostics": {
+          "4": 0.2125,
+          "8": 0.24687499999999998,
+          "16": 0.3234375,
+          "32": 0.3625
         }
       }
     },
@@ -9858,36 +10633,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.19683333333333333,
-        "win_rate": 0.6833333333333333,
-        "post_switch_mean_payoff": 0.334375,
+        "mean_payoff": 0.191,
+        "win_rate": 0.6733333333333333,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.3328125,
         "post_switch_window_diagnostics": {
-          "4": 0.3625,
-          "8": 0.3625,
-          "16": 0.334375,
-          "32": 0.33906250000000004
-        }
-      },
-      "control_shuffled_history": {
-        "mean_payoff": 0.2881666666666667,
-        "win_rate": 0.9066666666666666,
-        "post_switch_mean_payoff": 0.321875,
-        "post_switch_window_diagnostics": {
-          "4": 0.325,
+          "4": 0.34375,
           "8": 0.353125,
-          "16": 0.321875,
-          "32": 0.32499999999999996
+          "16": 0.3328125,
+          "32": 0.32968749999999997
         }
       },
-      "control": {
+      "control_full_history": {
+        "mean_payoff": 0.22616666666666665,
+        "win_rate": 0.72,
+        "prediction_l1": 0.5216475913713403,
+        "post_switch_mean_payoff": 0.29375,
+        "post_switch_window_diagnostics": {
+          "4": 0.3,
+          "8": 0.309375,
+          "16": 0.29375,
+          "32": 0.3078125
+        }
+      },
+      "control_sliding_window": {
         "mean_payoff": 0.26983333333333337,
         "win_rate": 0.8333333333333334,
+        "prediction_l1": 0.16478659022137282,
         "post_switch_mean_payoff": 0.40937500000000004,
         "post_switch_window_diagnostics": {
           "4": 0.24375,
           "8": 0.346875,
           "16": 0.40937500000000004,
           "32": 0.36875
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.158,
+        "win_rate": 0.6466666666666666,
+        "prediction_l1": 0.1575859754597513,
+        "post_switch_mean_payoff": 0.2609375,
+        "post_switch_window_diagnostics": {
+          "4": 0.19374999999999998,
+          "8": 0.25625000000000003,
+          "16": 0.2609375,
+          "32": 0.26718749999999997
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.14733333333333334,
+        "win_rate": 0.63,
+        "prediction_l1": 0.1669254264343021,
+        "post_switch_mean_payoff": 0.384375,
+        "post_switch_window_diagnostics": {
+          "4": 0.14375,
+          "8": 0.296875,
+          "16": 0.384375,
+          "32": 0.34765625
         }
       }
     },
@@ -10196,36 +10998,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.19133333333333333,
-        "win_rate": 0.6633333333333333,
-        "post_switch_mean_payoff": 0.340625,
+        "mean_payoff": 0.18366666666666667,
+        "win_rate": 0.6366666666666667,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.3296875,
         "post_switch_window_diagnostics": {
-          "4": 0.35,
-          "8": 0.359375,
-          "16": 0.340625,
-          "32": 0.34140625
+          "4": 0.36875,
+          "8": 0.34687500000000004,
+          "16": 0.3296875,
+          "32": 0.33515625
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.30433333333333334,
-        "win_rate": 0.92,
-        "post_switch_mean_payoff": 0.315625,
+      "control_full_history": {
+        "mean_payoff": 0.2603333333333333,
+        "win_rate": 0.84,
+        "prediction_l1": 0.5167177527291097,
+        "post_switch_mean_payoff": 0.3015625,
         "post_switch_window_diagnostics": {
-          "4": 0.33125,
-          "8": 0.33125,
-          "16": 0.315625,
-          "32": 0.31953125
+          "4": 0.325,
+          "8": 0.31875000000000003,
+          "16": 0.3015625,
+          "32": 0.30859375
         }
       },
-      "control": {
+      "control_sliding_window": {
         "mean_payoff": 0.24800000000000003,
         "win_rate": 0.8233333333333334,
+        "prediction_l1": 0.16645644210861602,
         "post_switch_mean_payoff": 0.3125,
         "post_switch_window_diagnostics": {
           "4": 0.19374999999999998,
           "8": 0.2875,
           "16": 0.3125,
           "32": 0.2875
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.15100000000000002,
+        "win_rate": 0.7266666666666667,
+        "prediction_l1": 0.1526713449163066,
+        "post_switch_mean_payoff": 0.29375,
+        "post_switch_window_diagnostics": {
+          "4": 0.25,
+          "8": 0.29375,
+          "16": 0.29375,
+          "32": 0.23984375000000002
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.15016666666666667,
+        "win_rate": 0.7333333333333333,
+        "prediction_l1": 0.16405367730011033,
+        "post_switch_mean_payoff": 0.296875,
+        "post_switch_window_diagnostics": {
+          "4": 0.15,
+          "8": 0.265625,
+          "16": 0.296875,
+          "32": 0.209375
         }
       }
     },
@@ -10534,36 +11363,63 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.18883333333333333,
-        "win_rate": 0.65,
-        "post_switch_mean_payoff": 0.334375,
+        "mean_payoff": 0.17666666666666667,
+        "win_rate": 0.6233333333333333,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.3328125,
         "post_switch_window_diagnostics": {
           "4": 0.325,
-          "8": 0.334375,
-          "16": 0.334375,
-          "32": 0.3265625
+          "8": 0.34375,
+          "16": 0.3328125,
+          "32": 0.3234375
         }
       },
-      "control_shuffled_history": {
-        "mean_payoff": 0.3258333333333333,
-        "win_rate": 0.97,
-        "post_switch_mean_payoff": 0.2890625,
+      "control_full_history": {
+        "mean_payoff": 0.3075,
+        "win_rate": 0.9366666666666666,
+        "prediction_l1": 0.5108981532229078,
+        "post_switch_mean_payoff": 0.3265625,
         "post_switch_window_diagnostics": {
-          "4": 0.3,
-          "8": 0.315625,
-          "16": 0.2890625,
-          "32": 0.3109375
+          "4": 0.3375,
+          "8": 0.334375,
+          "16": 0.3265625,
+          "32": 0.32109374999999996
         }
       },
-      "control": {
-        "mean_payoff": 0.30516666666666664,
+      "control_sliding_window": {
+        "mean_payoff": 0.30483333333333335,
         "win_rate": 0.8466666666666667,
+        "prediction_l1": 0.16232759993629559,
         "post_switch_mean_payoff": 0.3515625,
         "post_switch_window_diagnostics": {
           "4": 0.275,
           "8": 0.275,
           "16": 0.3515625,
           "32": 0.29687500000000006
+        }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.184,
+        "win_rate": 0.6966666666666667,
+        "prediction_l1": 0.15406842580592447,
+        "post_switch_mean_payoff": 0.2671875,
+        "post_switch_window_diagnostics": {
+          "4": 0.25625,
+          "8": 0.265625,
+          "16": 0.2671875,
+          "32": 0.22187500000000002
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.23733333333333334,
+        "win_rate": 0.7933333333333333,
+        "prediction_l1": 0.15999264487285544,
+        "post_switch_mean_payoff": 0.3359375,
+        "post_switch_window_diagnostics": {
+          "4": 0.2125,
+          "8": 0.24375000000000002,
+          "16": 0.3359375,
+          "32": 0.26796875000000003
         }
       }
     },
@@ -10872,30 +11728,33 @@
         2
       ],
       "baseline": {
-        "mean_payoff": 0.18333333333333332,
-        "win_rate": 0.6566666666666666,
-        "post_switch_mean_payoff": 0.334375,
+        "mean_payoff": 0.187,
+        "win_rate": 0.65,
+        "prediction_l1": null,
+        "post_switch_mean_payoff": 0.33125,
+        "post_switch_window_diagnostics": {
+          "4": 0.3625,
+          "8": 0.325,
+          "16": 0.33125,
+          "32": 0.33046875
+        }
+      },
+      "control_full_history": {
+        "mean_payoff": 0.2615,
+        "win_rate": 0.8166666666666667,
+        "prediction_l1": 0.523146760520744,
+        "post_switch_mean_payoff": 0.328125,
         "post_switch_window_diagnostics": {
           "4": 0.2875,
-          "8": 0.328125,
-          "16": 0.334375,
-          "32": 0.3390625
-        }
-      },
-      "control_shuffled_history": {
-        "mean_payoff": 0.30766666666666664,
-        "win_rate": 0.9333333333333333,
-        "post_switch_mean_payoff": 0.325,
-        "post_switch_window_diagnostics": {
-          "4": 0.29375,
           "8": 0.309375,
-          "16": 0.325,
-          "32": 0.32734375
+          "16": 0.328125,
+          "32": 0.33046875
         }
       },
-      "control": {
+      "control_sliding_window": {
         "mean_payoff": 0.29550000000000004,
         "win_rate": 0.8433333333333334,
+        "prediction_l1": 0.16605191909539735,
         "post_switch_mean_payoff": 0.29375,
         "post_switch_window_diagnostics": {
           "4": 0.2625,
@@ -10903,8 +11762,32 @@
           "16": 0.29375,
           "32": 0.31015625
         }
+      },
+      "control_exponential_decay": {
+        "mean_payoff": 0.1715,
+        "win_rate": 0.67,
+        "prediction_l1": 0.156755510011462,
+        "post_switch_mean_payoff": 0.2734375,
+        "post_switch_window_diagnostics": {
+          "4": 0.26875,
+          "8": 0.29374999999999996,
+          "16": 0.2734375,
+          "32": 0.228125
+        }
+      },
+      "control_change_point": {
+        "mean_payoff": 0.19083333333333333,
+        "win_rate": 0.69,
+        "prediction_l1": 0.16702533379271842,
+        "post_switch_mean_payoff": 0.25625,
+        "post_switch_window_diagnostics": {
+          "4": 0.1875,
+          "8": 0.24062499999999998,
+          "16": 0.25625,
+          "32": 0.221875
+        }
       }
     }
   ],
-  "claim_scope": "paired replay recency falsification under nonstationarity; not closed-loop construct recovery"
+  "claim_scope": "Control-estimator mechanism ablation under fixed nonstationary replay; not observational construct recovery"
 }

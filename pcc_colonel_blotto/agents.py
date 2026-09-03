@@ -137,3 +137,114 @@ class ShuffledHistoryControl:
         shuffled = list(opponent_history)
         rng.shuffle(shuffled)
         return ControlAgent(lookback=self.lookback).act(game, shuffled, rng)
+
+
+def _control_allocation_from_means(game: BlottoGame, means: list[float]) -> Allocation:
+    """Construct the Control response to an estimated opponent allocation profile."""
+    desirability = [game.values[i] / (1.0 + means[i]) for i in range(game.battlefields)]
+    alloc = [0] * game.battlefields
+    remaining = game.troops
+    for i in sorted(range(game.battlefields), key=lambda j: desirability[j], reverse=True):
+        target = min(remaining, int(math.floor(means[i])) + 1)
+        alloc[i] += target
+        remaining -= target
+        if remaining == 0:
+            break
+    for i in sorted(range(game.battlefields), key=lambda j: game.values[j], reverse=True):
+        if remaining <= 0:
+            break
+        alloc[i] += 1
+        remaining -= 1
+    return tuple(alloc)
+
+
+def _history_means(history: list[Allocation], battlefields: int) -> list[float]:
+    if not history:
+        return [0.0] * battlefields
+    return [sum(a[i] for a in history) / len(history) for i in range(battlefields)]
+
+
+@dataclass
+class FullHistoryControl:
+    """Control using the complete observed-history mean."""
+    name: str = "control_full_history"
+
+    def estimate(self, game: BlottoGame, opponent_history: list[Allocation]) -> list[float]:
+        return _history_means(opponent_history, game.battlefields)
+
+    def act(self, game: BlottoGame, opponent_history: list[Allocation], rng: random.Random) -> Allocation:
+        if not opponent_history:
+            return ValueBaseline().act(game, [], rng)
+        return _control_allocation_from_means(game, self.estimate(game, opponent_history))
+
+
+@dataclass
+class SlidingWindowControl:
+    """Control using a hard recency window."""
+    name: str = "control_sliding_window"
+    lookback: int = 8
+
+    def estimate(self, game: BlottoGame, opponent_history: list[Allocation]) -> list[float]:
+        return _history_means(opponent_history[-self.lookback:], game.battlefields)
+
+    def act(self, game: BlottoGame, opponent_history: list[Allocation], rng: random.Random) -> Allocation:
+        if not opponent_history:
+            return ValueBaseline().act(game, [], rng)
+        return _control_allocation_from_means(game, self.estimate(game, opponent_history))
+
+
+@dataclass
+class ExponentialDecayControl:
+    """Control using exponentially decayed opponent-allocation estimates."""
+    name: str = "control_exponential_decay"
+    alpha: float = 0.35
+
+    def estimate(self, game: BlottoGame, opponent_history: list[Allocation]) -> list[float]:
+        if not opponent_history:
+            return [0.0] * game.battlefields
+        means = [float(x) for x in opponent_history[0]]
+        for a in opponent_history[1:]:
+            means = [self.alpha * a[i] + (1.0 - self.alpha) * means[i] for i in range(game.battlefields)]
+        return means
+
+    def act(self, game: BlottoGame, opponent_history: list[Allocation], rng: random.Random) -> Allocation:
+        if not opponent_history:
+            return ValueBaseline().act(game, [], rng)
+        return _control_allocation_from_means(game, self.estimate(game, opponent_history))
+
+
+@dataclass
+class ChangePointControl:
+    """Control that discards stale history after a detected distributional shift.
+
+    Detection compares the mean of a recent block against the immediately prior
+    block using L1 distance in troop allocations.  No true regime labels are used.
+    """
+    name: str = "control_change_point"
+    window: int = 8
+    threshold: float = 4.0
+
+    def _segment(self, game: BlottoGame, opponent_history: list[Allocation]) -> list[Allocation]:
+        if len(opponent_history) < 2 * self.window:
+            return opponent_history
+        # Scan candidate boundaries from newest to oldest and retain observations
+        # after the most recent strong shift.
+        for boundary in range(len(opponent_history) - self.window, self.window - 1, -1):
+            before = opponent_history[boundary - self.window:boundary]
+            after = opponent_history[boundary:min(len(opponent_history), boundary + self.window)]
+            if len(after) < self.window:
+                continue
+            mb = _history_means(before, game.battlefields)
+            ma = _history_means(after, game.battlefields)
+            distance = sum(abs(ma[i] - mb[i]) for i in range(game.battlefields))
+            if distance >= self.threshold:
+                return opponent_history[boundary:]
+        return opponent_history
+
+    def estimate(self, game: BlottoGame, opponent_history: list[Allocation]) -> list[float]:
+        return _history_means(self._segment(game, opponent_history), game.battlefields)
+
+    def act(self, game: BlottoGame, opponent_history: list[Allocation], rng: random.Random) -> Allocation:
+        if not opponent_history:
+            return ValueBaseline().act(game, [], rng)
+        return _control_allocation_from_means(game, self.estimate(game, opponent_history))
