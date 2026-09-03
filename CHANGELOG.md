@@ -87,3 +87,13 @@
 - Added static-weighted and adaptive-counter opponent families.
 - Added initial synthetic mechanism probe and prespecified protocol.
 - Added tests and CLI.
+
+## 1.0.0
+
+- Added independently optimized learned Blotto policies with no latent PCC weights or PCC component supervision.
+- Added four generic training objectives across three opponent curricula (12 frozen learned policies total).
+- Added held-out evaluation against `MeanProfileExploiter` and an exogenous alternating-regime opponent.
+- Added unsupervised PCA over held-out behavioral observables and independent mechanism-facing Pressure/Control/Chaos signatures.
+- Added split-half signature stability analysis and frozen v1.0 emergence protocol.
+- Frozen result: first three PCs explain 92.1% of behavior variance; Pressure aligns with PC1 (r=0.949) and Chaos with PC2 (r=0.925), while the prespecified distinct-PC Control criterion fails (forced PC3 r=0.059). All three signatures are highly split-half stable (~0.996-0.998).
+- Strong three-independent-axis emergence claim is therefore **not supported**; stable low-dimensional PCC-related organization without independent Control is supported as the narrower result.

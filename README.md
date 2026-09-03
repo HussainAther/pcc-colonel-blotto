@@ -252,3 +252,28 @@ python -m pcc_colonel_blotto pressure-control-boundary \
 ```
 
 See `docs/PRESSURE_CONTROL_BOUNDARY_PROTOCOL.md` and `validation/PRESSURE_CONTROL_BOUNDARY.md`.
+
+## v1.0: independently learned-agent emergence
+
+The v1.0 experiment removes latent PCC weights from the generator entirely. Twelve compact policies are independently optimized under generic game objectives (`payoff`, `win_rate`, `risk_adjusted`, `robust`) and three opponent curricula (`static`, `adaptive`, `mixed`). Handcrafted Pressure/Control/Chaos agents are not used to train them.
+
+After freezing, policies are evaluated only against held-out opponent families and characterized from public trajectory behavior. An unsupervised PCA plus independent mechanism-facing PCC signature analysis yields:
+
+- first three PCs: **92.1%** cumulative behavioral variance;
+- Pressure ↔ PC1: **r = +0.949**;
+- Chaos ↔ PC2: **r = +0.925**;
+- Control forced one-to-one ↔ PC3: **r = +0.059**;
+- split-half signature stability: **Pressure 0.998 / Control 0.997 / Chaos 0.996**.
+
+The prespecified strong three-axis emergence rule **fails** because Control does not occupy a distinct third PC. This is still materially stronger than engineered-mixture recovery: stable PCC-related behavioral structure appears without PCC weights existing in the learned-agent generator, but the current evidence supports Pressure and Chaos as clearer independent dimensions than Control.
+
+Reproduce:
+
+```bash
+python -m pcc_colonel_blotto emergent-learned-agents \
+  --output-dir validation \
+  --train-iterations 8 \
+  --train-rounds 35 \
+  --eval-rounds 100 \
+  --eval-seeds 4
+```

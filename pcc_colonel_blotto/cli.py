@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from .experiment import write_chaos_exploiter_falsification, write_control_estimator_ablation, write_control_history_destruction, write_control_regime_switching, write_pressure_leverage_intervention, write_pressure_matched_intervention, write_probe, write_observational_recovery, write_pressure_control_boundary
+from .experiment import write_chaos_exploiter_falsification, write_control_estimator_ablation, write_control_history_destruction, write_control_regime_switching, write_pressure_leverage_intervention, write_pressure_matched_intervention, write_probe, write_observational_recovery, write_pressure_control_boundary, write_emergent_learned_agents
 
 
 def main() -> None:
@@ -42,6 +42,12 @@ def main() -> None:
     boundary.add_argument("--output-dir", default="validation")
     boundary.add_argument("--rounds", type=int, default=240)
     boundary.add_argument("--seeds-per-mixture", type=int, default=6)
+    emergence = sub.add_parser("emergent-learned-agents", help="run the v1.0 independent learned-agent emergence probe")
+    emergence.add_argument("--output-dir", default="validation")
+    emergence.add_argument("--train-iterations", type=int, default=8)
+    emergence.add_argument("--train-rounds", type=int, default=35)
+    emergence.add_argument("--eval-rounds", type=int, default=100)
+    emergence.add_argument("--eval-seeds", type=int, default=4)
     args = parser.parse_args()
     if args.command == "mechanism-probe":
         result = write_probe(args.output_dir, rounds=args.rounds, seeds=args.seeds)
@@ -83,6 +89,19 @@ def main() -> None:
         print(f"midpoint baseline MAE: {a['edge_midpoint_baseline_mae']:.6f}")
         print(f"relative improvement: {a['relative_improvement_over_midpoint']:.3%}")
         print(f"Pressure correlation: {a['pressure_prediction_correlation']:.6f}")
+        for name, item in result["prespecified_checks"].items():
+            print(f"{name}: {'PASS' if item['pass'] else 'FAIL'}")
+    elif args.command == "emergent-learned-agents":
+        result = write_emergent_learned_agents(
+            args.output_dir, args.train_iterations, args.train_rounds, args.eval_rounds, args.eval_seeds
+        )
+        a = result["aggregate"]
+        print(f"first three PC variance: {a['first_three_pc_cumulative_variance']:.3%}")
+        for axis, corr in a["assigned_correlations"].items():
+            pc = a["assigned_pc_by_signature"][axis]
+            print(f"{axis}: PC{pc} correlation={corr:+.6f}")
+        for axis, value in a["split_half_signature_stability"].items():
+            print(f"{axis} split-half stability={value:+.6f}")
         for name, item in result["prespecified_checks"].items():
             print(f"{name}: {'PASS' if item['pass'] else 'FAIL'}")
     elif args.command == "chaos-exploiter-falsification":

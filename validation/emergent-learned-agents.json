@@ -1,0 +1,1337 @@
+{
+  "schema": "pcc-colonel-blotto-emergent-learned-agents-v1.0",
+  "game": {
+    "troops": 10,
+    "values": [
+      1.0,
+      1.5,
+      2.0,
+      2.5,
+      3.0
+    ],
+    "battlefields": 5
+  },
+  "design": {
+    "learned_agents": 12,
+    "objectives": [
+      "payoff",
+      "win_rate",
+      "risk_adjusted",
+      "robust"
+    ],
+    "training_curricula": [
+      "static",
+      "adaptive",
+      "mixed"
+    ],
+    "heldout_evaluation_contexts": [
+      "mean_profile_exploiter",
+      "alternating_weighted_heldout"
+    ],
+    "train_iterations": 8,
+    "train_rounds": 35,
+    "eval_rounds": 100,
+    "eval_seeds": 4,
+    "latent_pcc_weights_in_generator": false,
+    "pcc_component_policies_used_for_training": false,
+    "unsupervised_model": "PCA on standardized held-out behavioral observables",
+    "behavior_feature_names": [
+      "mean_profile_exploiter:mean_payoff",
+      "mean_profile_exploiter:win_rate",
+      "mean_profile_exploiter:allocation_entropy",
+      "mean_profile_exploiter:distinct_action_ratio",
+      "mean_profile_exploiter:mean_concentration",
+      "mean_profile_exploiter:mean_leverage_targeting",
+      "mean_profile_exploiter:mean_opponent_viable_responses",
+      "mean_profile_exploiter:mean_step_l1",
+      "mean_profile_exploiter:repeat_rate",
+      "mean_profile_exploiter:late_minus_early_payoff",
+      "mean_profile_exploiter:lagged_counter_payoff",
+      "alternating_weighted_heldout:mean_payoff",
+      "alternating_weighted_heldout:win_rate",
+      "alternating_weighted_heldout:allocation_entropy",
+      "alternating_weighted_heldout:distinct_action_ratio",
+      "alternating_weighted_heldout:mean_concentration",
+      "alternating_weighted_heldout:mean_leverage_targeting",
+      "alternating_weighted_heldout:mean_opponent_viable_responses",
+      "alternating_weighted_heldout:mean_step_l1",
+      "alternating_weighted_heldout:repeat_rate",
+      "alternating_weighted_heldout:late_minus_early_payoff",
+      "alternating_weighted_heldout:lagged_counter_payoff"
+    ]
+  },
+  "aggregate": {
+    "explained_variance_ratio": [
+      0.46718831157001106,
+      0.38156690249729586,
+      0.07182190305839127
+    ],
+    "first_three_pc_cumulative_variance": 0.9205771171256982,
+    "signature_pc_correlations": {
+      "pressure": [
+        0.9487950983657322,
+        -0.2134606701015782,
+        -0.1290571287799347
+      ],
+      "control": [
+        0.6697417133365108,
+        0.7366517088320139,
+        0.05931338103237743
+      ],
+      "chaos": [
+        -0.2801823420933161,
+        0.9254219791849895,
+        0.15860517352803008
+      ]
+    },
+    "assigned_pc_by_signature": {
+      "pressure": 1,
+      "control": 3,
+      "chaos": 2
+    },
+    "assigned_correlations": {
+      "pressure": 0.9487950983657322,
+      "control": 0.05931338103237743,
+      "chaos": 0.9254219791849895
+    },
+    "split_half_signature_stability": {
+      "pressure": 0.9976372451992285,
+      "control": 0.996642845894042,
+      "chaos": 0.99560803831761
+    },
+    "all_primary_checks_pass": false
+  },
+  "prespecified_checks": {
+    "first_three_behavior_pcs_explain_at_least_70_percent": {
+      "pass": true,
+      "value": 0.9205771171256982,
+      "threshold": 0.7
+    },
+    "three_distinct_pcs_align_with_pcc_signatures_at_least_0_50": {
+      "pass": false,
+      "assigned_correlations": {
+        "pressure": 0.9487950983657322,
+        "control": 0.05931338103237743,
+        "chaos": 0.9254219791849895
+      },
+      "threshold": 0.5
+    },
+    "pcc_signature_split_half_stability_at_least_0_60": {
+      "pass": true,
+      "axis_stability": {
+        "pressure": 0.9976372451992285,
+        "control": 0.996642845894042,
+        "chaos": 0.99560803831761
+      },
+      "threshold": 0.6
+    }
+  },
+  "pc_loadings": [
+    {
+      "pc": 1,
+      "top_loadings": [
+        {
+          "feature": "alternating_weighted_heldout:mean_step_l1",
+          "loading": -0.28774263142554574
+        },
+        {
+          "feature": "mean_profile_exploiter:mean_leverage_targeting",
+          "loading": 0.2768106773272639
+        },
+        {
+          "feature": "mean_profile_exploiter:mean_step_l1",
+          "loading": -0.27207728157866357
+        },
+        {
+          "feature": "alternating_weighted_heldout:mean_opponent_viable_responses",
+          "loading": -0.2604878202621051
+        },
+        {
+          "feature": "mean_profile_exploiter:repeat_rate",
+          "loading": 0.23965311616922075
+        },
+        {
+          "feature": "mean_profile_exploiter:distinct_action_ratio",
+          "loading": -0.23599709334350397
+        },
+        {
+          "feature": "mean_profile_exploiter:mean_opponent_viable_responses",
+          "loading": -0.23128201300889523
+        },
+        {
+          "feature": "alternating_weighted_heldout:mean_payoff",
+          "loading": 0.2266819058741337
+        }
+      ]
+    },
+    {
+      "pc": 2,
+      "top_loadings": [
+        {
+          "feature": "alternating_weighted_heldout:mean_concentration",
+          "loading": -0.32624311088180763
+        },
+        {
+          "feature": "mean_profile_exploiter:mean_concentration",
+          "loading": -0.3046271470885088
+        },
+        {
+          "feature": "alternating_weighted_heldout:allocation_entropy",
+          "loading": 0.2622321066390736
+        },
+        {
+          "feature": "alternating_weighted_heldout:repeat_rate",
+          "loading": -0.25114329552981035
+        },
+        {
+          "feature": "alternating_weighted_heldout:distinct_action_ratio",
+          "loading": 0.2417267496067865
+        },
+        {
+          "feature": "mean_profile_exploiter:allocation_entropy",
+          "loading": 0.2348341839788283
+        },
+        {
+          "feature": "alternating_weighted_heldout:lagged_counter_payoff",
+          "loading": 0.23394254608144044
+        },
+        {
+          "feature": "alternating_weighted_heldout:mean_payoff",
+          "loading": 0.23234003005138532
+        }
+      ]
+    },
+    {
+      "pc": 3,
+      "top_loadings": [
+        {
+          "feature": "alternating_weighted_heldout:late_minus_early_payoff",
+          "loading": -0.4295829029613265
+        },
+        {
+          "feature": "mean_profile_exploiter:mean_opponent_viable_responses",
+          "loading": 0.3767796098896123
+        },
+        {
+          "feature": "mean_profile_exploiter:mean_step_l1",
+          "loading": 0.3341654026103878
+        },
+        {
+          "feature": "mean_profile_exploiter:mean_concentration",
+          "loading": 0.3330139723443605
+        },
+        {
+          "feature": "mean_profile_exploiter:win_rate",
+          "loading": 0.3265999876632231
+        },
+        {
+          "feature": "alternating_weighted_heldout:mean_step_l1",
+          "loading": 0.2737738331518214
+        },
+        {
+          "feature": "mean_profile_exploiter:lagged_counter_payoff",
+          "loading": 0.26009904020194585
+        },
+        {
+          "feature": "mean_profile_exploiter:mean_payoff",
+          "loading": 0.23523352536571707
+        }
+      ]
+    }
+  ],
+  "agents": [
+    {
+      "agent_id": 0,
+      "objective": "payoff",
+      "curriculum": "static",
+      "training": {
+        "objective": "payoff",
+        "seed": 7001,
+        "training_score": 0.022857142857142857,
+        "accepted_mutations": 1,
+        "temperature": 0.1764872544816454,
+        "coefficients": [
+          0.24971277362518052,
+          -1.1656605195893404,
+          0.3981620144992743,
+          -0.5361136512937181,
+          0.09860082364099909,
+          0.2720184577840949,
+          0.3320326724621555,
+          0.22655126052184182,
+          0.9452113217033626
+        ]
+      },
+      "pc_scores": [
+        0.3179996818492479,
+        2.789654481113462,
+        -0.7402503100378379
+      ],
+      "pcc_signature_scores": {
+        "pressure": 0.1493708257825557,
+        "control": 0.6494437740742028,
+        "chaos": 0.7180599479443017
+      },
+      "heldout_contexts": {
+        "mean_profile_exploiter": {
+          "mean_payoff": -0.033375,
+          "win_rate": 0.3875,
+          "allocation_entropy": 4.266745440202678,
+          "distinct_action_ratio": 0.8025,
+          "mean_concentration": 0.48375,
+          "mean_leverage_targeting": 0.6872499999999999,
+          "mean_opponent_viable_responses": 363.615,
+          "mean_step_l1": 7.803030303030303,
+          "repeat_rate": 0.01767676767676768,
+          "battlefield_0_mean": 0.8925000000000001,
+          "battlefield_0_variance": 1.2252750000000001,
+          "battlefield_0_mean_abs_gap": 0.96,
+          "battlefield_1_mean": 1.25,
+          "battlefield_1_variance": 1.694,
+          "battlefield_1_mean_abs_gap": 1.2125,
+          "battlefield_2_mean": 1.5525,
+          "battlefield_2_variance": 1.597175,
+          "battlefield_2_mean_abs_gap": 1.3175,
+          "battlefield_3_mean": 2.085,
+          "battlefield_3_variance": 2.2177499999999997,
+          "battlefield_3_mean_abs_gap": 1.5075,
+          "battlefield_4_mean": 4.220000000000001,
+          "battlefield_4_variance": 4.32775,
+          "battlefield_4_mean_abs_gap": 2.2425,
+          "late_minus_early_payoff": 0.09150000000000001,
+          "lagged_counter_payoff": -0.03345959595959596
+        },
+        "alternating_weighted_heldout": {
+          "mean_payoff": 0.027375,
+          "win_rate": 0.49,
+          "allocation_entropy": 4.360801927257264,
+          "distinct_action_ratio": 0.84,
+          "mean_concentration": 0.44525000000000003,
+          "mean_leverage_targeting": 0.646875,
+          "mean_opponent_viable_responses": 359.205,
+          "mean_step_l1": 7.833333333333333,
+          "repeat_rate": 0.007575757575757576,
+          "battlefield_0_mean": 1.085,
+          "battlefield_0_variance": 1.5196999999999998,
+          "battlefield_0_mean_abs_gap": 1.105,
+          "battlefield_1_mean": 1.4525000000000001,
+          "battlefield_1_variance": 1.745575,
+          "battlefield_1_mean_abs_gap": 1.1425,
+          "battlefield_2_mean": 1.6925,
+          "battlefield_2_variance": 1.634675,
+          "battlefield_2_mean_abs_gap": 1.0925,
+          "battlefield_3_mean": 2.0425,
+          "battlefield_3_variance": 2.212825,
+          "battlefield_3_mean_abs_gap": 1.4375,
+          "battlefield_4_mean": 3.7275,
+          "battlefield_4_variance": 3.3520250000000003,
+          "battlefield_4_mean_abs_gap": 1.6875,
+          "late_minus_early_payoff": -0.005500000000000001,
+          "lagged_counter_payoff": 0.03787878787878788
+        }
+      }
+    },
+    {
+      "agent_id": 1,
+      "objective": "payoff",
+      "curriculum": "adaptive",
+      "training": {
+        "objective": "payoff",
+        "seed": 7314,
+        "training_score": -0.075,
+        "accepted_mutations": 5,
+        "temperature": 0.08995593647867836,
+        "coefficients": [
+          0.7835810471792375,
+          -1.489844743011545,
+          -0.5206554309207838,
+          -0.5622122455322242,
+          -1.9818788110589471,
+          -0.689051845864883,
+          -0.2984539431828306,
+          0.008371050456303208,
+          0.8109588595131452
+        ]
+      },
+      "pc_scores": [
+        2.483414744981878,
+        -6.155091387498179,
+        -2.3958239890123982
+      ],
+      "pcc_signature_scores": {
+        "pressure": 1.1969511125544423,
+        "control": -1.049982273348461,
+        "chaos": -1.7544579909929992
+      },
+      "heldout_contexts": {
+        "mean_profile_exploiter": {
+          "mean_payoff": -0.2445,
+          "win_rate": 0.15,
+          "allocation_entropy": 2.4830410270082366,
+          "distinct_action_ratio": 0.2475,
+          "mean_concentration": 0.7005,
+          "mean_leverage_targeting": 0.8969374999999999,
+          "mean_opponent_viable_responses": 399.38,
+          "mean_step_l1": 3.8636363636363638,
+          "repeat_rate": 0.13636363636363635,
+          "battlefield_0_mean": 0.02,
+          "battlefield_0_variance": 0.01945,
+          "battlefield_0_mean_abs_gap": 0.8200000000000001,
+          "battlefield_1_mean": 0.16,
+          "battlefield_1_variance": 0.28645,
+          "battlefield_1_mean_abs_gap": 1.02,
+          "battlefield_2_mean": 0.69,
+          "battlefield_2_variance": 0.8127500000000001,
+          "battlefield_2_mean_abs_gap": 1.345,
+          "battlefield_3_mean": 2.1825,
+          "battlefield_3_variance": 1.299075,
+          "battlefield_3_mean_abs_gap": 1.5125,
+          "battlefield_4_mean": 6.9475,
+          "battlefield_4_variance": 2.445825,
+          "battlefield_4_mean_abs_gap": 3.4575,
+          "late_minus_early_payoff": -0.0545,
+          "lagged_counter_payoff": -0.25366161616161614
+        },
+        "alternating_weighted_heldout": {
+          "mean_payoff": -0.214,
+          "win_rate": 0.135,
+          "allocation_entropy": 2.7139959126758493,
+          "distinct_action_ratio": 0.265,
+          "mean_concentration": 0.718,
+          "mean_leverage_targeting": 0.898375,
+          "mean_opponent_viable_responses": 429.9675,
+          "mean_step_l1": 3.787878787878788,
+          "repeat_rate": 0.10101010101010101,
+          "battlefield_0_mean": 0.0325,
+          "battlefield_0_variance": 0.036125,
+          "battlefield_0_mean_abs_gap": 1.1775,
+          "battlefield_1_mean": 0.225,
+          "battlefield_1_variance": 0.35145,
+          "battlefield_1_mean_abs_gap": 1.54,
+          "battlefield_2_mean": 0.65,
+          "battlefield_2_variance": 0.6535500000000001,
+          "battlefield_2_mean_abs_gap": 1.2625,
+          "battlefield_3_mean": 1.96,
+          "battlefield_3_variance": 1.44805,
+          "battlefield_3_mean_abs_gap": 1.125,
+          "battlefield_4_mean": 7.1325,
+          "battlefield_4_variance": 2.434375,
+          "battlefield_4_mean_abs_gap": 4.59,
+          "late_minus_early_payoff": 0.07650000000000001,
+          "lagged_counter_payoff": -0.2181818181818182
+        }
+      }
+    },
+    {
+      "agent_id": 2,
+      "objective": "payoff",
+      "curriculum": "mixed",
+      "training": {
+        "objective": "payoff",
+        "seed": 7627,
+        "training_score": 0.0967857142857143,
+        "accepted_mutations": 2,
+        "temperature": 0.1209306553703387,
+        "coefficients": [
+          0.052687542219938155,
+          -0.5421136679813955,
+          1.6724196472603448,
+          -0.9930411136574019,
+          -0.6346319687059339,
+          0.22662753758043752,
+          -1.1728794834662837,
+          -0.9606079379659694,
+          -0.33850072148034893
+        ]
+      },
+      "pc_scores": [
+        3.1140068695667673,
+        3.241915253455744,
+        0.8511164017058672
+      ],
+      "pcc_signature_scores": {
+        "pressure": 0.23206215156797888,
+        "control": 1.5177403391794824,
+        "chaos": 0.6273319709624404
+      },
+      "heldout_contexts": {
+        "mean_profile_exploiter": {
+          "mean_payoff": 0.04025,
+          "win_rate": 0.58,
+          "allocation_entropy": 3.818584440572552,
+          "distinct_action_ratio": 0.645,
+          "mean_concentration": 0.51525,
+          "mean_leverage_targeting": 0.7304999999999999,
+          "mean_opponent_viable_responses": 354.59000000000003,
+          "mean_step_l1": 6.338383838383839,
+          "repeat_rate": 0.09848484848484848,
+          "battlefield_0_mean": 0.4575,
+          "battlefield_0_variance": 0.48137500000000005,
+          "battlefield_0_mean_abs_gap": 0.595,
+          "battlefield_1_mean": 1.4674999999999998,
+          "battlefield_1_variance": 1.806525,
+          "battlefield_1_mean_abs_gap": 1.24,
+          "battlefield_2_mean": 1.1724999999999999,
+          "battlefield_2_variance": 1.625525,
+          "battlefield_2_mean_abs_gap": 1.3475,
+          "battlefield_3_mean": 2.2025,
+          "battlefield_3_variance": 2.3937250000000003,
+          "battlefield_3_mean_abs_gap": 1.6025,
+          "battlefield_4_mean": 4.7,
+          "battlefield_4_variance": 4.19475,
+          "battlefield_4_mean_abs_gap": 2.1550000000000002,
+          "late_minus_early_payoff": -0.001500000000000003,
+          "lagged_counter_payoff": 0.08547979797979799
+        },
+        "alternating_weighted_heldout": {
+          "mean_payoff": 0.201375,
+          "win_rate": 0.8225,
+          "allocation_entropy": 4.171817687804342,
+          "distinct_action_ratio": 0.725,
+          "mean_concentration": 0.38725,
+          "mean_leverage_targeting": 0.6176875000000001,
+          "mean_opponent_viable_responses": 339.3775,
+          "mean_step_l1": 5.8939393939393945,
+          "repeat_rate": 0.022727272727272728,
+          "battlefield_0_mean": 0.8075,
+          "battlefield_0_variance": 0.900625,
+          "battlefield_0_mean_abs_gap": 0.9875,
+          "battlefield_1_mean": 2.3425000000000002,
+          "battlefield_1_variance": 1.557925,
+          "battlefield_1_mean_abs_gap": 1.1025,
+          "battlefield_2_mean": 1.545,
+          "battlefield_2_variance": 1.36575,
+          "battlefield_2_mean_abs_gap": 1.03,
+          "battlefield_3_mean": 1.9449999999999998,
+          "battlefield_3_variance": 2.3827,
+          "battlefield_3_mean_abs_gap": 1.665,
+          "battlefield_4_mean": 3.36,
+          "battlefield_4_variance": 1.30315,
+          "battlefield_4_mean_abs_gap": 1.15,
+          "late_minus_early_payoff": -0.09400000000000001,
+          "lagged_counter_payoff": 0.21565656565656566
+        }
+      }
+    },
+    {
+      "agent_id": 3,
+      "objective": "win_rate",
+      "curriculum": "static",
+      "training": {
+        "objective": "win_rate",
+        "seed": 7940,
+        "training_score": 0.5428571428571428,
+        "accepted_mutations": 2,
+        "temperature": 0.14647155155554886,
+        "coefficients": [
+          0.5361519836183865,
+          1.2101770713796094,
+          1.525093118809413,
+          0.9878946051969589,
+          -1.0627508570735984,
+          -0.7590031248137554,
+          -0.40869348891083523,
+          -0.12713693022723951,
+          -0.7983257384207479
+        ]
+      },
+      "pc_scores": [
+        1.802761396203462,
+        -1.4184272518147083,
+        2.550839513050366
+      ],
+      "pcc_signature_scores": {
+        "pressure": 0.30411728457161785,
+        "control": 0.1164434811460297,
+        "chaos": -0.09676652238702627
+      },
+      "heldout_contexts": {
+        "mean_profile_exploiter": {
+          "mean_payoff": -0.020625,
+          "win_rate": 0.4975,
+          "allocation_entropy": 3.6096110782792747,
+          "distinct_action_ratio": 0.5275,
+          "mean_concentration": 0.7075,
+          "mean_leverage_targeting": 0.76425,
+          "mean_opponent_viable_responses": 559.87,
+          "mean_step_l1": 9.454545454545455,
+          "repeat_rate": 0.0707070707070707,
+          "battlefield_0_mean": 0.2675,
+          "battlefield_0_variance": 0.27452499999999996,
+          "battlefield_0_mean_abs_gap": 0.625,
+          "battlefield_1_mean": 0.6575,
+          "battlefield_1_variance": 1.418175,
+          "battlefield_1_mean_abs_gap": 1.355,
+          "battlefield_2_mean": 1.4849999999999999,
+          "battlefield_2_variance": 4.508749999999999,
+          "battlefield_2_mean_abs_gap": 2.015,
+          "battlefield_3_mean": 3.4175,
+          "battlefield_3_variance": 7.566775,
+          "battlefield_3_mean_abs_gap": 3.1625,
+          "battlefield_4_mean": 4.172499999999999,
+          "battlefield_4_variance": 13.784375,
+          "battlefield_4_mean_abs_gap": 3.7275,
+          "late_minus_early_payoff": 0.033,
+          "lagged_counter_payoff": -0.011363636363636364
+        },
+        "alternating_weighted_heldout": {
+          "mean_payoff": -0.0006249999999999988,
+          "win_rate": 0.475,
+          "allocation_entropy": 3.370137026093371,
+          "distinct_action_ratio": 0.49,
+          "mean_concentration": 0.6735,
+          "mean_leverage_targeting": 0.8138125,
+          "mean_opponent_viable_responses": 471.905,
+          "mean_step_l1": 8.01010101010101,
+          "repeat_rate": 0.10353535353535354,
+          "battlefield_0_mean": 0.20249999999999999,
+          "battlefield_0_variance": 0.26632500000000003,
+          "battlefield_0_mean_abs_gap": 1.2225,
+          "battlefield_1_mean": 0.3375,
+          "battlefield_1_variance": 0.644925,
+          "battlefield_1_mean_abs_gap": 1.5925,
+          "battlefield_2_mean": 1.17,
+          "battlefield_2_variance": 2.5129,
+          "battlefield_2_mean_abs_gap": 1.5625,
+          "battlefield_3_mean": 3.285,
+          "battlefield_3_variance": 6.89675,
+          "battlefield_3_mean_abs_gap": 2.41,
+          "battlefield_4_mean": 5.005,
+          "battlefield_4_variance": 9.1201,
+          "battlefield_4_mean_abs_gap": 3.6375,
+          "late_minus_early_payoff": -0.037,
+          "lagged_counter_payoff": 0.0068181818181818205
+        }
+      }
+    },
+    {
+      "agent_id": 4,
+      "objective": "win_rate",
+      "curriculum": "adaptive",
+      "training": {
+        "objective": "win_rate",
+        "seed": 8253,
+        "training_score": 0.2,
+        "accepted_mutations": 3,
+        "temperature": 0.3160790990175239,
+        "coefficients": [
+          1.0461232245399037,
+          -1.188511285568056,
+          -0.5854718239117536,
+          0.9642720835249312,
+          -0.5918722397255156,
+          0.5257053675719385,
+          0.7149260615037563,
+          -0.09705178635309158,
+          -0.5733625773509408
+        ]
+      },
+      "pc_scores": [
+        -5.312311338916202,
+        -0.5769953619880657,
+        -0.7077171683866216
+      ],
+      "pcc_signature_scores": {
+        "pressure": -1.3861727297677513,
+        "control": -1.2690198695990287,
+        "chaos": 0.06326591306374596
+      },
+      "heldout_contexts": {
+        "mean_profile_exploiter": {
+          "mean_payoff": -0.2825,
+          "win_rate": 0.095,
+          "allocation_entropy": 4.483410804214666,
+          "distinct_action_ratio": 0.9175,
+          "mean_concentration": 0.5437500000000001,
+          "mean_leverage_targeting": 0.4966875,
+          "mean_opponent_viable_responses": 591.1375,
+          "mean_step_l1": 10.363636363636363,
+          "repeat_rate": 0.0,
+          "battlefield_0_mean": 1.0675,
+          "battlefield_0_variance": 1.939175,
+          "battlefield_0_mean_abs_gap": 1.29,
+          "battlefield_1_mean": 3.02,
+          "battlefield_1_variance": 5.2677,
+          "battlefield_1_mean_abs_gap": 2.9924999999999997,
+          "battlefield_2_mean": 2.715,
+          "battlefield_2_variance": 5.55875,
+          "battlefield_2_mean_abs_gap": 2.4125,
+          "battlefield_3_mean": 1.3725,
+          "battlefield_3_variance": 2.618375,
+          "battlefield_3_mean_abs_gap": 1.7349999999999999,
+          "battlefield_4_mean": 1.825,
+          "battlefield_4_variance": 4.51475,
+          "battlefield_4_mean_abs_gap": 2.125,
+          "late_minus_early_payoff": -0.048500000000000015,
+          "lagged_counter_payoff": -0.29393939393939394
+        },
+        "alternating_weighted_heldout": {
+          "mean_payoff": -0.262875,
+          "win_rate": 0.0975,
+          "allocation_entropy": 4.449602940370646,
+          "distinct_action_ratio": 0.895,
+          "mean_concentration": 0.5695,
+          "mean_leverage_targeting": 0.53125,
+          "mean_opponent_viable_responses": 592.3225,
+          "mean_step_l1": 10.94949494949495,
+          "repeat_rate": 0.0025252525252525255,
+          "battlefield_0_mean": 1.0375,
+          "battlefield_0_variance": 1.891625,
+          "battlefield_0_mean_abs_gap": 1.2425000000000002,
+          "battlefield_1_mean": 2.31,
+          "battlefield_1_variance": 4.88485,
+          "battlefield_1_mean_abs_gap": 1.865,
+          "battlefield_2_mean": 3.14,
+          "battlefield_2_variance": 6.89395,
+          "battlefield_2_mean_abs_gap": 2.3725,
+          "battlefield_3_mean": 1.39,
+          "battlefield_3_variance": 2.59625,
+          "battlefield_3_mean_abs_gap": 1.94,
+          "battlefield_4_mean": 2.1225,
+          "battlefield_4_variance": 5.938375,
+          "battlefield_4_mean_abs_gap": 2.175,
+          "late_minus_early_payoff": -0.010499999999999989,
+          "lagged_counter_payoff": -0.2638888888888889
+        }
+      }
+    },
+    {
+      "agent_id": 5,
+      "objective": "win_rate",
+      "curriculum": "mixed",
+      "training": {
+        "objective": "win_rate",
+        "seed": 8566,
+        "training_score": 0.08571428571428572,
+        "accepted_mutations": 2,
+        "temperature": 0.3045702702267103,
+        "coefficients": [
+          -0.28688137150703075,
+          0.7015425281962545,
+          0.08053178358844937,
+          0.9930041061471278,
+          0.39958629524268846,
+          -1.4006041985492876,
+          0.322831730239968,
+          0.6713096386453483,
+          0.035132925990881914
+        ]
+      },
+      "pc_scores": [
+        -6.256729161339334,
+        -2.1247554117352876,
+        1.0370924339175673
+      ],
+      "pcc_signature_scores": {
+        "pressure": -1.678851795827653,
+        "control": -1.7082775006199358,
+        "chaos": -0.16550093722954212
+      },
+      "heldout_contexts": {
+        "mean_profile_exploiter": {
+          "mean_payoff": -0.3085,
+          "win_rate": 0.1,
+          "allocation_entropy": 4.369259335758213,
+          "distinct_action_ratio": 0.845,
+          "mean_concentration": 0.66875,
+          "mean_leverage_targeting": 0.48312499999999997,
+          "mean_opponent_viable_responses": 701.8924999999999,
+          "mean_step_l1": 12.83838383838384,
+          "repeat_rate": 0.0025252525252525255,
+          "battlefield_0_mean": 3.24,
+          "battlefield_0_variance": 9.47785,
+          "battlefield_0_mean_abs_gap": 3.215,
+          "battlefield_1_mean": 0.5925,
+          "battlefield_1_variance": 1.216775,
+          "battlefield_1_mean_abs_gap": 1.0025,
+          "battlefield_2_mean": 1.74,
+          "battlefield_2_variance": 5.137650000000001,
+          "battlefield_2_mean_abs_gap": 2.1475,
+          "battlefield_3_mean": 2.4575,
+          "battlefield_3_variance": 8.032325,
+          "battlefield_3_mean_abs_gap": 2.77,
+          "battlefield_4_mean": 1.97,
+          "battlefield_4_variance": 7.9347,
+          "battlefield_4_mean_abs_gap": 2.775,
+          "late_minus_early_payoff": -0.08449999999999999,
+          "lagged_counter_payoff": -0.30606060606060603
+        },
+        "alternating_weighted_heldout": {
+          "mean_payoff": -0.326125,
+          "win_rate": 0.1075,
+          "allocation_entropy": 4.286975931938329,
+          "distinct_action_ratio": 0.8075,
+          "mean_concentration": 0.68125,
+          "mean_leverage_targeting": 0.5499375,
+          "mean_opponent_viable_responses": 675.2475,
+          "mean_step_l1": 13.075757575757576,
+          "repeat_rate": 0.007575757575757576,
+          "battlefield_0_mean": 2.59,
+          "battlefield_0_variance": 8.94305,
+          "battlefield_0_mean_abs_gap": 2.63,
+          "battlefield_1_mean": 0.4875,
+          "battlefield_1_variance": 1.1646750000000001,
+          "battlefield_1_mean_abs_gap": 1.5325,
+          "battlefield_2_mean": 1.8599999999999999,
+          "battlefield_2_variance": 5.684749999999999,
+          "battlefield_2_mean_abs_gap": 1.925,
+          "battlefield_3_mean": 2.46,
+          "battlefield_3_variance": 7.88525,
+          "battlefield_3_mean_abs_gap": 2.4825,
+          "battlefield_4_mean": 2.6025,
+          "battlefield_4_variance": 10.555025,
+          "battlefield_4_mean_abs_gap": 2.835,
+          "late_minus_early_payoff": -0.027499999999999997,
+          "lagged_counter_payoff": -0.32840909090909093
+        }
+      }
+    },
+    {
+      "agent_id": 6,
+      "objective": "risk_adjusted",
+      "curriculum": "static",
+      "training": {
+        "objective": "risk_adjusted",
+        "seed": 8879,
+        "training_score": 0.013038436773037392,
+        "accepted_mutations": 4,
+        "temperature": 0.09635910280463995,
+        "coefficients": [
+          -0.7210323175017398,
+          -1.072664875872061,
+          0.31356299487116307,
+          -0.25169513334145255,
+          0.47554562641226555,
+          0.18925795076058055,
+          0.4900042941556243,
+          1.7229466107145037,
+          1.6311057809695422
+        ]
+      },
+      "pc_scores": [
+        1.441179505480191,
+        2.1303934276264576,
+        -0.657845408063481
+      ],
+      "pcc_signature_scores": {
+        "pressure": 0.4227728667771093,
+        "control": 0.7237896379254237,
+        "chaos": 0.199378690740075
+      },
+      "heldout_contexts": {
+        "mean_profile_exploiter": {
+          "mean_payoff": -0.06725,
+          "win_rate": 0.39749999999999996,
+          "allocation_entropy": 3.8469121879117822,
+          "distinct_action_ratio": 0.6675,
+          "mean_concentration": 0.46825,
+          "mean_leverage_targeting": 0.6984375,
+          "mean_opponent_viable_responses": 325.78999999999996,
+          "mean_step_l1": 7.550505050505051,
+          "repeat_rate": 0.03535353535353535,
+          "battlefield_0_mean": 1.1375,
+          "battlefield_0_variance": 1.487575,
+          "battlefield_0_mean_abs_gap": 1.0425,
+          "battlefield_1_mean": 0.7675000000000001,
+          "battlefield_1_variance": 0.992225,
+          "battlefield_1_mean_abs_gap": 1.2075,
+          "battlefield_2_mean": 1.01,
+          "battlefield_2_variance": 1.39005,
+          "battlefield_2_mean_abs_gap": 1.3075,
+          "battlefield_3_mean": 3.19,
+          "battlefield_3_variance": 1.87085,
+          "battlefield_3_mean_abs_gap": 2.7075,
+          "battlefield_4_mean": 3.895,
+          "battlefield_4_variance": 3.97735,
+          "battlefield_4_mean_abs_gap": 1.915,
+          "late_minus_early_payoff": -0.009999999999999997,
+          "lagged_counter_payoff": -0.07474747474747476
+        },
+        "alternating_weighted_heldout": {
+          "mean_payoff": 0.087125,
+          "win_rate": 0.6475,
+          "allocation_entropy": 3.9955529578287656,
+          "distinct_action_ratio": 0.6575,
+          "mean_concentration": 0.4335,
+          "mean_leverage_targeting": 0.68475,
+          "mean_opponent_viable_responses": 305.9175,
+          "mean_step_l1": 6.565656565656566,
+          "repeat_rate": 0.007575757575757576,
+          "battlefield_0_mean": 1.18,
+          "battlefield_0_variance": 1.28125,
+          "battlefield_0_mean_abs_gap": 1.04,
+          "battlefield_1_mean": 0.7675,
+          "battlefield_1_variance": 0.860575,
+          "battlefield_1_mean_abs_gap": 1.1825,
+          "battlefield_2_mean": 0.9975,
+          "battlefield_2_variance": 1.237775,
+          "battlefield_2_mean_abs_gap": 1.1725,
+          "battlefield_3_mean": 3.5925000000000002,
+          "battlefield_3_variance": 1.4854249999999998,
+          "battlefield_3_mean_abs_gap": 1.26,
+          "battlefield_4_mean": 3.4625,
+          "battlefield_4_variance": 2.412575,
+          "battlefield_4_mean_abs_gap": 1.56,
+          "late_minus_early_payoff": -0.0605,
+          "lagged_counter_payoff": 0.09482323232323232
+        }
+      }
+    },
+    {
+      "agent_id": 7,
+      "objective": "risk_adjusted",
+      "curriculum": "adaptive",
+      "training": {
+        "objective": "risk_adjusted",
+        "seed": 9192,
+        "training_score": -0.05650513234252236,
+        "accepted_mutations": 2,
+        "temperature": 0.11943974586157734,
+        "coefficients": [
+          -0.17629716589431282,
+          -1.3394463367630278,
+          0.5718782641619476,
+          -0.6290543869416616,
+          -0.3885696962442296,
+          0.1258305490294539,
+          0.789905512765812,
+          -0.2626655151872274,
+          0.4844995779356307
+        ]
+      },
+      "pc_scores": [
+        0.7835535586380393,
+        3.691490821586389,
+        -0.8822698316921246
+      ],
+      "pcc_signature_scores": {
+        "pressure": -0.08477565585282398,
+        "control": 0.9358866214703487,
+        "chaos": 0.5578417880987414
+      },
+      "heldout_contexts": {
+        "mean_profile_exploiter": {
+          "mean_payoff": -0.06425,
+          "win_rate": 0.33999999999999997,
+          "allocation_entropy": 4.3018166617427775,
+          "distinct_action_ratio": 0.8,
+          "mean_concentration": 0.41325,
+          "mean_leverage_targeting": 0.6296875,
+          "mean_opponent_viable_responses": 350.5725,
+          "mean_step_l1": 6.717171717171717,
+          "repeat_rate": 0.0025252525252525255,
+          "battlefield_0_mean": 0.6950000000000001,
+          "battlefield_0_variance": 0.6905,
+          "battlefield_0_mean_abs_gap": 0.6925,
+          "battlefield_1_mean": 1.5899999999999999,
+          "battlefield_1_variance": 1.3228499999999999,
+          "battlefield_1_mean_abs_gap": 1.2775,
+          "battlefield_2_mean": 2.7325,
+          "battlefield_2_variance": 1.827325,
+          "battlefield_2_mean_abs_gap": 1.785,
+          "battlefield_3_mean": 1.7975,
+          "battlefield_3_variance": 1.853625,
+          "battlefield_3_mean_abs_gap": 1.355,
+          "battlefield_4_mean": 3.185,
+          "battlefield_4_variance": 2.7073,
+          "battlefield_4_mean_abs_gap": 1.515,
+          "late_minus_early_payoff": 0.056999999999999995,
+          "lagged_counter_payoff": -0.05202020202020202
+        },
+        "alternating_weighted_heldout": {
+          "mean_payoff": 0.11812500000000001,
+          "win_rate": 0.6725,
+          "allocation_entropy": 4.211466719430488,
+          "distinct_action_ratio": 0.7475,
+          "mean_concentration": 0.36475,
+          "mean_leverage_targeting": 0.5958749999999999,
+          "mean_opponent_viable_responses": 339.295,
+          "mean_step_l1": 6.1010101010101,
+          "repeat_rate": 0.0025252525252525255,
+          "battlefield_0_mean": 0.98,
+          "battlefield_0_variance": 0.95825,
+          "battlefield_0_mean_abs_gap": 0.89,
+          "battlefield_1_mean": 1.75,
+          "battlefield_1_variance": 1.4748999999999999,
+          "battlefield_1_mean_abs_gap": 0.99,
+          "battlefield_2_mean": 2.715,
+          "battlefield_2_variance": 1.1625,
+          "battlefield_2_mean_abs_gap": 1.1575,
+          "battlefield_3_mean": 1.565,
+          "battlefield_3_variance": 1.63765,
+          "battlefield_3_mean_abs_gap": 1.5275,
+          "battlefield_4_mean": 2.9899999999999998,
+          "battlefield_4_variance": 1.34815,
+          "battlefield_4_mean_abs_gap": 1.115,
+          "late_minus_early_payoff": -0.079,
+          "lagged_counter_payoff": 0.12525252525252525
+        }
+      }
+    },
+    {
+      "agent_id": 8,
+      "objective": "risk_adjusted",
+      "curriculum": "mixed",
+      "training": {
+        "objective": "risk_adjusted",
+        "seed": 9505,
+        "training_score": -0.03824550408863203,
+        "accepted_mutations": 5,
+        "temperature": 0.20261015547986339,
+        "coefficients": [
+          0.7699615347206392,
+          -0.6245766514414508,
+          1.1024262733863346,
+          -0.6728734630882549,
+          -0.6894871477284017,
+          0.44261395957289096,
+          -1.778295960760635,
+          0.0384531404233647,
+          0.08540942670805247
+        ]
+      },
+      "pc_scores": [
+        2.604806145945329,
+        1.2615185924551024,
+        -0.14477940698358416
+      ],
+      "pcc_signature_scores": {
+        "pressure": 0.6308236585140753,
+        "control": 0.9461436908830415,
+        "chaos": 0.19961836227146026
+      },
+      "heldout_contexts": {
+        "mean_profile_exploiter": {
+          "mean_payoff": -0.013625000000000002,
+          "win_rate": 0.475,
+          "allocation_entropy": 3.54891230259665,
+          "distinct_action_ratio": 0.5525,
+          "mean_concentration": 0.5934999999999999,
+          "mean_leverage_targeting": 0.7936875,
+          "mean_opponent_viable_responses": 380.6925,
+          "mean_step_l1": 6.46969696969697,
+          "repeat_rate": 0.06060606060606061,
+          "battlefield_0_mean": 0.2925,
+          "battlefield_0_variance": 0.34362499999999996,
+          "battlefield_0_mean_abs_gap": 0.56,
+          "battlefield_1_mean": 1.125,
+          "battlefield_1_variance": 2.00765,
+          "battlefield_1_mean_abs_gap": 1.33,
+          "battlefield_2_mean": 0.5775,
+          "battlefield_2_variance": 0.740925,
+          "battlefield_2_mean_abs_gap": 1.155,
+          "battlefield_3_mean": 2.5525,
+          "battlefield_3_variance": 2.369875,
+          "battlefield_3_mean_abs_gap": 1.5875,
+          "battlefield_4_mean": 5.4525,
+          "battlefield_4_variance": 5.145475,
+          "battlefield_4_mean_abs_gap": 2.2775,
+          "late_minus_early_payoff": 0.033,
+          "lagged_counter_payoff": 0.026515151515151516
+        },
+        "alternating_weighted_heldout": {
+          "mean_payoff": 0.095375,
+          "win_rate": 0.6675,
+          "allocation_entropy": 3.9570861202994,
+          "distinct_action_ratio": 0.665,
+          "mean_concentration": 0.477,
+          "mean_leverage_targeting": 0.71275,
+          "mean_opponent_viable_responses": 324.97,
+          "mean_step_l1": 6.53030303030303,
+          "repeat_rate": 0.030303030303030304,
+          "battlefield_0_mean": 0.54,
+          "battlefield_0_variance": 0.6083000000000001,
+          "battlefield_0_mean_abs_gap": 0.9475,
+          "battlefield_1_mean": 1.6575,
+          "battlefield_1_variance": 2.124425,
+          "battlefield_1_mean_abs_gap": 1.2175,
+          "battlefield_2_mean": 0.6699999999999999,
+          "battlefield_2_variance": 0.9197500000000001,
+          "battlefield_2_mean_abs_gap": 1.3525,
+          "battlefield_3_mean": 3.0175,
+          "battlefield_3_variance": 2.128125,
+          "battlefield_3_mean_abs_gap": 1.2974999999999999,
+          "battlefield_4_mean": 4.115,
+          "battlefield_4_variance": 3.13855,
+          "battlefield_4_mean_abs_gap": 1.93,
+          "late_minus_early_payoff": 0.008499999999999997,
+          "lagged_counter_payoff": 0.10126262626262626
+        }
+      }
+    },
+    {
+      "agent_id": 9,
+      "objective": "robust",
+      "curriculum": "static",
+      "training": {
+        "objective": "robust",
+        "seed": 9818,
+        "training_score": -0.15571428571428572,
+        "accepted_mutations": 3,
+        "temperature": 0.7376810477736784,
+        "coefficients": [
+          1.084532180813243,
+          -0.7514782629044967,
+          0.3215204046370391,
+          -1.2016318618945687,
+          -0.8758317202627026,
+          0.6867634014806849,
+          0.30749343713959926,
+          1.0977952128987092,
+          -1.2237184806375274
+        ]
+      },
+      "pc_scores": [
+        -2.880500696841641,
+        1.5337525207503944,
+        -0.8520387057962059
+      ],
+      "pcc_signature_scores": {
+        "pressure": -0.7281921084022146,
+        "control": -0.21567665589551024,
+        "chaos": 0.6265314953618081
+      },
+      "heldout_contexts": {
+        "mean_profile_exploiter": {
+          "mean_payoff": -0.12112500000000001,
+          "win_rate": 0.245,
+          "allocation_entropy": 4.502047604088077,
+          "distinct_action_ratio": 0.9275,
+          "mean_concentration": 0.50225,
+          "mean_leverage_targeting": 0.58325,
+          "mean_opponent_viable_responses": 475.215,
+          "mean_step_l1": 9.686868686868687,
+          "repeat_rate": 0.0025252525252525255,
+          "battlefield_0_mean": 1.0,
+          "battlefield_0_variance": 1.7611500000000002,
+          "battlefield_0_mean_abs_gap": 1.0274999999999999,
+          "battlefield_1_mean": 1.875,
+          "battlefield_1_variance": 3.17585,
+          "battlefield_1_mean_abs_gap": 1.7175,
+          "battlefield_2_mean": 2.0324999999999998,
+          "battlefield_2_variance": 3.5040750000000003,
+          "battlefield_2_mean_abs_gap": 1.845,
+          "battlefield_3_mean": 2.98,
+          "battlefield_3_variance": 4.3115000000000006,
+          "battlefield_3_mean_abs_gap": 2.0,
+          "battlefield_4_mean": 2.1125,
+          "battlefield_4_variance": 4.208475,
+          "battlefield_4_mean_abs_gap": 1.975,
+          "late_minus_early_payoff": 0.044499999999999984,
+          "lagged_counter_payoff": -0.12752525252525254
+        },
+        "alternating_weighted_heldout": {
+          "mean_payoff": -0.126375,
+          "win_rate": 0.2575,
+          "allocation_entropy": 4.5007394837286645,
+          "distinct_action_ratio": 0.9275,
+          "mean_concentration": 0.50025,
+          "mean_leverage_targeting": 0.5648125,
+          "mean_opponent_viable_responses": 492.3875,
+          "mean_step_l1": 9.833333333333334,
+          "repeat_rate": 0.0,
+          "battlefield_0_mean": 1.1275,
+          "battlefield_0_variance": 1.9716749999999998,
+          "battlefield_0_mean_abs_gap": 1.205,
+          "battlefield_1_mean": 2.065,
+          "battlefield_1_variance": 3.4365000000000006,
+          "battlefield_1_mean_abs_gap": 1.4675,
+          "battlefield_2_mean": 1.9224999999999999,
+          "battlefield_2_variance": 3.378175,
+          "battlefield_2_mean_abs_gap": 1.4725000000000001,
+          "battlefield_3_mean": 2.8575,
+          "battlefield_3_variance": 4.2852749999999995,
+          "battlefield_3_mean_abs_gap": 1.79,
+          "battlefield_4_mean": 2.0275,
+          "battlefield_4_variance": 4.2296249999999995,
+          "battlefield_4_mean_abs_gap": 1.825,
+          "late_minus_early_payoff": 0.0275,
+          "lagged_counter_payoff": -0.12714646464646465
+        }
+      }
+    },
+    {
+      "agent_id": 10,
+      "objective": "robust",
+      "curriculum": "adaptive",
+      "training": {
+        "objective": "robust",
+        "seed": 10131,
+        "training_score": -0.001428571428571426,
+        "accepted_mutations": 6,
+        "temperature": 0.1973561361008456,
+        "coefficients": [
+          0.675334360528701,
+          0.008693280114504098,
+          0.7439055794223915,
+          0.04613797414682261,
+          -1.0984350817197013,
+          -1.2235651856094936,
+          0.3215636930572682,
+          1.4084642953446733,
+          1.3283406823510742
+        ]
+      },
+      "pc_scores": [
+        3.8812023359149523,
+        -3.922212882823024,
+        0.8652725859704266
+      ],
+      "pcc_signature_scores": {
+        "pressure": 1.1302027631271792,
+        "control": -0.25898460059453066,
+        "chaos": -1.325649229244043
+      },
+      "heldout_contexts": {
+        "mean_profile_exploiter": {
+          "mean_payoff": -0.125,
+          "win_rate": 0.32,
+          "allocation_entropy": 2.594270439159432,
+          "distinct_action_ratio": 0.23500000000000001,
+          "mean_concentration": 0.7402500000000001,
+          "mean_leverage_targeting": 0.90625,
+          "mean_opponent_viable_responses": 461.9375,
+          "mean_step_l1": 4.797979797979798,
+          "repeat_rate": 0.10858585858585858,
+          "battlefield_0_mean": 0.0675,
+          "battlefield_0_variance": 0.08727499999999999,
+          "battlefield_0_mean_abs_gap": 0.6124999999999999,
+          "battlefield_1_mean": 0.10500000000000001,
+          "battlefield_1_variance": 0.13795,
+          "battlefield_1_mean_abs_gap": 0.9425,
+          "battlefield_2_mean": 0.4375,
+          "battlefield_2_variance": 0.665675,
+          "battlefield_2_mean_abs_gap": 1.2275,
+          "battlefield_3_mean": 2.29,
+          "battlefield_3_variance": 3.25965,
+          "battlefield_3_mean_abs_gap": 1.7349999999999999,
+          "battlefield_4_mean": 7.1,
+          "battlefield_4_variance": 3.95785,
+          "battlefield_4_mean_abs_gap": 2.8775,
+          "late_minus_early_payoff": 0.013499999999999998,
+          "lagged_counter_payoff": -0.09962121212121212
+        },
+        "alternating_weighted_heldout": {
+          "mean_payoff": -0.056125,
+          "win_rate": 0.45,
+          "allocation_entropy": 2.6769529524488407,
+          "distinct_action_ratio": 0.2925,
+          "mean_concentration": 0.70225,
+          "mean_leverage_targeting": 0.8930625,
+          "mean_opponent_viable_responses": 416.3025,
+          "mean_step_l1": 5.4393939393939394,
+          "repeat_rate": 0.11363636363636365,
+          "battlefield_0_mean": 0.065,
+          "battlefield_0_variance": 0.09444999999999999,
+          "battlefield_0_mean_abs_gap": 1.17,
+          "battlefield_1_mean": 0.105,
+          "battlefield_1_variance": 0.16645,
+          "battlefield_1_mean_abs_gap": 1.63,
+          "battlefield_2_mean": 0.4825,
+          "battlefield_2_variance": 0.8793249999999999,
+          "battlefield_2_mean_abs_gap": 1.5375,
+          "battlefield_3_mean": 2.7375,
+          "battlefield_3_variance": 3.507775,
+          "battlefield_3_mean_abs_gap": 1.7075,
+          "battlefield_4_mean": 6.609999999999999,
+          "battlefield_4_variance": 4.45375,
+          "battlefield_4_mean_abs_gap": 4.135,
+          "late_minus_early_payoff": -0.0695,
+          "lagged_counter_payoff": -0.05580808080808081
+        }
+      }
+    },
+    {
+      "agent_id": 11,
+      "objective": "robust",
+      "curriculum": "mixed",
+      "training": {
+        "objective": "robust",
+        "seed": 10444,
+        "training_score": -0.19428571428571428,
+        "accepted_mutations": 3,
+        "temperature": 0.8099833334358623,
+        "coefficients": [
+          1.1419251246380235,
+          -0.3221490546124426,
+          0.292067656123029,
+          -0.19246706705018318,
+          -2.0428307813962157,
+          -1.2866508395324927,
+          0.15383594664421224,
+          -0.006964476658286589,
+          0.03809680156324841
+        ]
+      },
+      "pc_scores": [
+        -1.9793830414826912,
+        -0.4512428011282912,
+        1.0764038853280338
+      ],
+      "pcc_signature_scores": {
+        "pressure": -0.18830837304452114,
+        "control": -0.3875066446210619,
+        "chaos": 0.3503465114110341
+      },
+      "heldout_contexts": {
+        "mean_profile_exploiter": {
+          "mean_payoff": -0.08549999999999999,
+          "win_rate": 0.31,
+          "allocation_entropy": 4.085231313207553,
+          "distinct_action_ratio": 0.7175,
+          "mean_concentration": 0.6357499999999999,
+          "mean_leverage_targeting": 0.7114375000000001,
+          "mean_opponent_viable_responses": 532.4,
+          "mean_step_l1": 10.434343434343434,
+          "repeat_rate": 0.015151515151515152,
+          "battlefield_0_mean": 0.765,
+          "battlefield_0_variance": 1.4505,
+          "battlefield_0_mean_abs_gap": 0.9025000000000001,
+          "battlefield_1_mean": 0.9375,
+          "battlefield_1_variance": 2.102025,
+          "battlefield_1_mean_abs_gap": 1.4375,
+          "battlefield_2_mean": 1.8525,
+          "battlefield_2_variance": 4.517675,
+          "battlefield_2_mean_abs_gap": 1.8725,
+          "battlefield_3_mean": 1.9649999999999999,
+          "battlefield_3_variance": 4.14805,
+          "battlefield_3_mean_abs_gap": 1.9575,
+          "battlefield_4_mean": 4.48,
+          "battlefield_4_variance": 11.02895,
+          "battlefield_4_mean_abs_gap": 3.2,
+          "late_minus_early_payoff": -0.0225,
+          "lagged_counter_payoff": -0.08661616161616162
+        },
+        "alternating_weighted_heldout": {
+          "mean_payoff": -0.152375,
+          "win_rate": 0.2025,
+          "allocation_entropy": 4.162354745681634,
+          "distinct_action_ratio": 0.755,
+          "mean_concentration": 0.6185,
+          "mean_leverage_targeting": 0.6958125,
+          "mean_opponent_viable_responses": 525.975,
+          "mean_step_l1": 10.616161616161616,
+          "repeat_rate": 0.007575757575757576,
+          "battlefield_0_mean": 0.8275,
+          "battlefield_0_variance": 1.4712749999999999,
+          "battlefield_0_mean_abs_gap": 1.2125,
+          "battlefield_1_mean": 1.0025,
+          "battlefield_1_variance": 2.198525,
+          "battlefield_1_mean_abs_gap": 1.4625,
+          "battlefield_2_mean": 1.9225,
+          "battlefield_2_variance": 4.724775,
+          "battlefield_2_mean_abs_gap": 1.73,
+          "battlefield_3_mean": 2.005,
+          "battlefield_3_variance": 4.07545,
+          "battlefield_3_mean_abs_gap": 1.9375,
+          "battlefield_4_mean": 4.2425,
+          "battlefield_4_variance": 10.714725,
+          "battlefield_4_mean_abs_gap": 3.0675,
+          "late_minus_early_payoff": -0.02599999999999999,
+          "lagged_counter_payoff": -0.15315656565656566
+        }
+      }
+    }
+  ],
+  "claim_scope": "unsupervised emergence probe in independently optimized synthetic Blotto agents; no latent PCC weights exist in the generator and no human-play claim is made"
+}

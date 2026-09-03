@@ -1677,3 +1677,328 @@ def write_pressure_control_boundary(
     ]
     (out / "PRESSURE_CONTROL_BOUNDARY.md").write_text("\n".join(lines) + "\n")
     return result
+
+# ---------------------------------------------------------------------------
+# v1.0 emergent structure in independently optimized agents
+# ---------------------------------------------------------------------------
+
+EMERGENCE_TRAIN_ROUNDS = 35
+EMERGENCE_TRAIN_ITERATIONS = 8
+EMERGENCE_EVAL_ROUNDS = 100
+EMERGENCE_EVAL_SEEDS = 4
+EMERGENCE_MIN_PC3_VARIANCE = 0.70
+EMERGENCE_MIN_AXIS_CORRELATION = 0.50
+EMERGENCE_MIN_SPLIT_HALF_STABILITY = 0.60
+
+
+def _zscore_columns(rows: list[dict[str, float]], names: list[str]) -> tuple[list[list[float]], dict, dict]:
+    means = {n: sum(r[n] for r in rows) / len(rows) for n in names}
+    scales = {}
+    for n in names:
+        var = sum((r[n] - means[n]) ** 2 for r in rows) / len(rows)
+        scales[n] = math.sqrt(var) if var > 1e-12 else 1.0
+    matrix = [[(r[n] - means[n]) / scales[n] for n in names] for r in rows]
+    return matrix, means, scales
+
+
+def _matvec(a: list[list[float]], v: list[float]) -> list[float]:
+    return [sum(x * y for x, y in zip(row, v)) for row in a]
+
+
+def _dot(a: list[float], b: list[float]) -> float:
+    return sum(x * y for x, y in zip(a, b))
+
+
+def _norm(v: list[float]) -> float:
+    return math.sqrt(_dot(v, v))
+
+
+def _pca(matrix: list[list[float]], k: int = 3) -> tuple[list[list[float]], list[float], list[list[float]]]:
+    n = len(matrix)
+    p = len(matrix[0])
+    cov = [[sum(matrix[r][i] * matrix[r][j] for r in range(n)) / max(1, n - 1) for j in range(p)] for i in range(p)]
+    work = [row[:] for row in cov]
+    vecs: list[list[float]] = []
+    vals: list[float] = []
+    for comp in range(min(k, p)):
+        v = [1.0 + 0.07 * ((i + 1) * (comp + 2) % 5) for i in range(p)]
+        nv = _norm(v)
+        v = [x / nv for x in v]
+        for _ in range(120):
+            w = _matvec(work, v)
+            nw = _norm(w)
+            if nw <= 1e-12:
+                break
+            v2 = [x / nw for x in w]
+            if sum(abs(a - b) for a, b in zip(v, v2)) < 1e-10:
+                v = v2
+                break
+            v = v2
+        lam = _dot(v, _matvec(work, v))
+        if lam < 1e-10:
+            break
+        vecs.append(v)
+        vals.append(lam)
+        for i in range(p):
+            for j in range(p):
+                work[i][j] -= lam * v[i] * v[j]
+    scores = [[_dot(row, v) for v in vecs] for row in matrix]
+    return vecs, vals, scores
+
+
+def _corr(xs: list[float], ys: list[float]) -> float:
+    return _pearson(xs, ys)
+
+
+def _evaluate_learned_agent(agent, opponent_factory, *, game: BlottoGame, rounds: int, seed: int) -> dict:
+    rng_a = random.Random(seed)
+    rng_b = random.Random(seed + 10_000_019)
+    opponent = opponent_factory()
+    ah: list[Allocation] = []
+    bh: list[Allocation] = []
+    payoffs: list[float] = []
+    for _ in range(rounds):
+        a = agent.act(game, bh, rng_a)
+        b = opponent.act(game, ah, rng_b)
+        ah.append(a)
+        bh.append(b)
+        payoffs.append(game.payoff(a, b))
+    f = _trajectory_observables(ah, bh, payoffs, game)
+    q = max(1, rounds // 4)
+    f["late_minus_early_payoff"] = sum(payoffs[-q:]) / q - sum(payoffs[:q]) / q
+    if len(ah) > 1:
+        f["lagged_counter_payoff"] = sum(game.payoff(ah[t], bh[t - 1]) for t in range(1, len(ah))) / (len(ah) - 1)
+    else:
+        f["lagged_counter_payoff"] = 0.0
+    return f
+
+
+def _mean_feature_rows(rows: list[dict[str, float]]) -> dict[str, float]:
+    names = rows[0].keys()
+    return {n: sum(r[n] for r in rows) / len(rows) for n in names}
+
+
+def _signature_scores(agent_rows: list[dict]) -> dict[str, list[float]]:
+    raw: list[dict[str, float]] = []
+    for row in agent_rows:
+        alt = row["contexts"]["alternating_weighted_heldout"]
+        exp = row["contexts"]["mean_profile_exploiter"]
+        raw.append({
+            "p_leverage": (alt["mean_leverage_targeting"] + exp["mean_leverage_targeting"]) / 2,
+            "p_constrict": -(alt["mean_opponent_viable_responses"] + exp["mean_opponent_viable_responses"]) / 2,
+            "c_counter": (alt["lagged_counter_payoff"] + exp["lagged_counter_payoff"]) / 2,
+            "c_gap": -sum(alt[f"battlefield_{i}_mean_abs_gap"] for i in range(5)) / 5,
+            "h_entropy": (alt["allocation_entropy"] + exp["allocation_entropy"]) / 2,
+            "h_value": exp["mean_payoff"],
+        })
+    _, means, scales = _zscore_columns(raw, list(raw[0]))
+    def z(r, n): return (r[n] - means[n]) / scales[n]
+    return {
+        "pressure": [0.65 * z(r, "p_leverage") + 0.35 * z(r, "p_constrict") for r in raw],
+        "control": [0.75 * z(r, "c_counter") + 0.25 * z(r, "c_gap") for r in raw],
+        "chaos": [0.65 * z(r, "h_entropy") + 0.35 * z(r, "h_value") for r in raw],
+    }
+
+
+def run_emergent_learned_agents(
+    train_iterations: int = EMERGENCE_TRAIN_ITERATIONS,
+    train_rounds: int = EMERGENCE_TRAIN_ROUNDS,
+    eval_rounds: int = EMERGENCE_EVAL_ROUNDS,
+    eval_seeds: int = EMERGENCE_EVAL_SEEDS,
+) -> dict:
+    """v1.0: test PCC-like structure in independently optimized agents with no latent PCC generator."""
+    from .learned import AlternatingWeightedOpponent, train_linear_agent
+
+    game = BlottoGame()
+    objectives = ["payoff", "win_rate", "risk_adjusted", "robust"]
+    curricula = {
+        "static": [StaticWeightedOpponent],
+        "adaptive": [AdaptiveCounterOpponent],
+        "mixed": [StaticWeightedOpponent, AdaptiveCounterOpponent],
+    }
+    trained: list[dict] = []
+    idx = 0
+    for objective in objectives:
+        for curriculum_name, factories in curricula.items():
+            seed = 7001 + idx * 313
+            agent, metadata = train_linear_agent(
+                game=game,
+                opponent_factories=factories,
+                objective=objective,
+                seed=seed,
+                iterations=train_iterations,
+                rounds=train_rounds,
+                eval_seeds=2,
+            )
+            trained.append({"agent": agent, "objective": objective, "curriculum": curriculum_name, "metadata": metadata})
+            idx += 1
+
+    eval_contexts = {
+        "mean_profile_exploiter": MeanProfileExploiter,
+        "alternating_weighted_heldout": AlternatingWeightedOpponent,
+    }
+    agent_rows: list[dict] = []
+    split_rows = {"even": [], "odd": []}
+    for ai, item in enumerate(trained):
+        contexts: dict[str, dict[str, float]] = {}
+        split_contexts = {"even": {}, "odd": {}}
+        for cname, factory in eval_contexts.items():
+            reps = []
+            even = []
+            odd = []
+            for rep in range(eval_seeds):
+                f = _evaluate_learned_agent(item["agent"], factory, game=game, rounds=eval_rounds, seed=900_001 + ai * 101 + rep)
+                reps.append(f)
+                (even if rep % 2 == 0 else odd).append(f)
+            contexts[cname] = _mean_feature_rows(reps)
+            split_contexts["even"][cname] = _mean_feature_rows(even)
+            split_contexts["odd"][cname] = _mean_feature_rows(odd)
+        public = {
+            "agent_id": ai,
+            "objective": item["objective"],
+            "curriculum": item["curriculum"],
+            "contexts": contexts,
+        }
+        agent_rows.append(public)
+        for split in ("even", "odd"):
+            split_rows[split].append({**public, "contexts": split_contexts[split]})
+
+    # PCA uses only behavioral observables from held-out contexts; objective and
+    # curriculum labels are retained solely for post-hoc description.
+    base_features = [
+        "mean_payoff", "win_rate", "allocation_entropy", "distinct_action_ratio",
+        "mean_concentration", "mean_leverage_targeting", "mean_opponent_viable_responses",
+        "mean_step_l1", "repeat_rate", "late_minus_early_payoff", "lagged_counter_payoff",
+    ]
+    feature_names = [f"{c}:{f}" for c in eval_contexts for f in base_features]
+    flat_rows: list[dict[str, float]] = []
+    for row in agent_rows:
+        flat_rows.append({f"{c}:{f}": row["contexts"][c][f] for c in eval_contexts for f in base_features})
+    matrix, means, scales = _zscore_columns(flat_rows, feature_names)
+    vecs, eigvals, pc_scores = _pca(matrix, 3)
+    total_var = sum(sum(x * x for x in r) for r in matrix) / max(1, len(matrix) - 1)
+    explained = [v / total_var if total_var else 0.0 for v in eigvals]
+    cumulative3 = sum(explained)
+
+    signatures = _signature_scores(agent_rows)
+    correlations: dict[str, list[float]] = {}
+    for axis, vals in signatures.items():
+        correlations[axis] = [_corr(vals, [s[j] for s in pc_scores]) for j in range(len(eigvals))]
+    # Best one-to-one assignment among 3! possibilities.
+    perms = [(0,1,2),(0,2,1),(1,0,2),(1,2,0),(2,0,1),(2,1,0)]
+    axes = ["pressure", "control", "chaos"]
+    assignment = max(perms, key=lambda p: sum(abs(correlations[axes[i]][p[i]]) for i in range(3)))
+    assigned_corr = {axes[i]: correlations[axes[i]][assignment[i]] for i in range(3)}
+
+    split_sig = {k: _signature_scores(v) for k, v in split_rows.items()}
+    split_stability = {axis: _corr(split_sig["even"][axis], split_sig["odd"][axis]) for axis in axes}
+    min_stability = min(split_stability.values())
+    min_alignment = min(abs(v) for v in assigned_corr.values())
+    checks = {
+        "first_three_behavior_pcs_explain_at_least_70_percent": {
+            "pass": cumulative3 >= EMERGENCE_MIN_PC3_VARIANCE,
+            "value": cumulative3,
+            "threshold": EMERGENCE_MIN_PC3_VARIANCE,
+        },
+        "three_distinct_pcs_align_with_pcc_signatures_at_least_0_50": {
+            "pass": min_alignment >= EMERGENCE_MIN_AXIS_CORRELATION,
+            "assigned_correlations": assigned_corr,
+            "threshold": EMERGENCE_MIN_AXIS_CORRELATION,
+        },
+        "pcc_signature_split_half_stability_at_least_0_60": {
+            "pass": min_stability >= EMERGENCE_MIN_SPLIT_HALF_STABILITY,
+            "axis_stability": split_stability,
+            "threshold": EMERGENCE_MIN_SPLIT_HALF_STABILITY,
+        },
+    }
+    loadings = []
+    for j, v in enumerate(vecs):
+        pairs = sorted(zip(feature_names, v), key=lambda x: abs(x[1]), reverse=True)
+        loadings.append({"pc": j + 1, "top_loadings": [{"feature": n, "loading": x} for n, x in pairs[:8]]})
+    agents_out = []
+    for i, row in enumerate(agent_rows):
+        agents_out.append({
+            "agent_id": row["agent_id"],
+            "objective": row["objective"],
+            "curriculum": row["curriculum"],
+            "training": trained[i]["metadata"],
+            "pc_scores": pc_scores[i],
+            "pcc_signature_scores": {axis: signatures[axis][i] for axis in axes},
+            "heldout_contexts": row["contexts"],
+        })
+    return {
+        "schema": "pcc-colonel-blotto-emergent-learned-agents-v1.0",
+        "game": {"troops": game.troops, "values": list(game.values), "battlefields": game.battlefields},
+        "design": {
+            "learned_agents": len(trained),
+            "objectives": objectives,
+            "training_curricula": list(curricula),
+            "heldout_evaluation_contexts": list(eval_contexts),
+            "train_iterations": train_iterations,
+            "train_rounds": train_rounds,
+            "eval_rounds": eval_rounds,
+            "eval_seeds": eval_seeds,
+            "latent_pcc_weights_in_generator": False,
+            "pcc_component_policies_used_for_training": False,
+            "unsupervised_model": "PCA on standardized held-out behavioral observables",
+            "behavior_feature_names": feature_names,
+        },
+        "aggregate": {
+            "explained_variance_ratio": explained,
+            "first_three_pc_cumulative_variance": cumulative3,
+            "signature_pc_correlations": correlations,
+            "assigned_pc_by_signature": {axes[i]: assignment[i] + 1 for i in range(3)},
+            "assigned_correlations": assigned_corr,
+            "split_half_signature_stability": split_stability,
+            "all_primary_checks_pass": all(v["pass"] for v in checks.values()),
+        },
+        "prespecified_checks": checks,
+        "pc_loadings": loadings,
+        "agents": agents_out,
+        "claim_scope": "unsupervised emergence probe in independently optimized synthetic Blotto agents; no latent PCC weights exist in the generator and no human-play claim is made",
+    }
+
+
+def write_emergent_learned_agents(
+    output_dir: str | Path,
+    train_iterations: int = EMERGENCE_TRAIN_ITERATIONS,
+    train_rounds: int = EMERGENCE_TRAIN_ROUNDS,
+    eval_rounds: int = EMERGENCE_EVAL_ROUNDS,
+    eval_seeds: int = EMERGENCE_EVAL_SEEDS,
+) -> dict:
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    result = run_emergent_learned_agents(train_iterations, train_rounds, eval_rounds, eval_seeds)
+    (out / "emergent-learned-agents.json").write_text(json.dumps(result, indent=2) + "\n")
+    a = result["aggregate"]
+    lines = [
+        "# PCC Colonel Blotto v1.0 Emergent Structure in Independently Learned Agents",
+        "",
+        "No latent PCC weights exist in these agents. Twelve compact policies are independently optimized under generic game objectives and opponent curricula, frozen, then characterized only on held-out opponents.",
+        "",
+        "## Unsupervised held-out behavior",
+        "",
+        f"- learned policies: **{result['design']['learned_agents']}**",
+        f"- first three PC cumulative variance: **{a['first_three_pc_cumulative_variance']:.1%}**",
+        f"- assigned Pressure correlation: **{a['assigned_correlations']['pressure']:+.3f}** (PC{a['assigned_pc_by_signature']['pressure']})",
+        f"- assigned Control correlation: **{a['assigned_correlations']['control']:+.3f}** (PC{a['assigned_pc_by_signature']['control']})",
+        f"- assigned Chaos correlation: **{a['assigned_correlations']['chaos']:+.3f}** (PC{a['assigned_pc_by_signature']['chaos']})",
+        "",
+        "## Split-half stability",
+        "",
+    ]
+    for axis, value in a["split_half_signature_stability"].items():
+        lines.append(f"- {axis.title()}: **{value:+.3f}**")
+    lines += ["", "## Prespecified checks", ""]
+    for name, item in result["prespecified_checks"].items():
+        lines.append(f"- **{name}**: {'PASS' if item['pass'] else 'FAIL'}")
+    lines += [
+        "",
+        f"Overall primary rule: **{'PASS' if a['all_primary_checks_pass'] else 'FAIL'}**",
+        "",
+        "## Interpretation guardrail",
+        "",
+        "This is a stronger evidentiary level than engineered-mixture recovery because PCC weights are absent from the generator. A pass would support reproducible PCC-like organization of independently optimized synthetic behavior, not prove that PCC is the unique latent basis, nor establish human/general-agent validity.",
+    ]
+    (out / "EMERGENT_LEARNED_AGENTS.md").write_text("\n".join(lines) + "\n")
+    return result
