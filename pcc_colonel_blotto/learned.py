@@ -199,3 +199,26 @@ class AlternatingWeightedOpponent:
         total = sum(weights)
         raw = [game.troops * w / total for w in weights]
         return _repair_profile(game, raw)
+
+@dataclass
+class FrontLoadedHeldoutOpponent:
+    """Exogenous held-out opponent emphasizing lower-index battlefields."""
+    name: str = "front_loaded_heldout"
+
+    def act(self, game: BlottoGame, opponent_history: list[Allocation], rng: random.Random) -> Allocation:
+        multipliers = (1.8, 1.5, 1.0, 0.65, 0.55)
+        weights = [game.values[i] * multipliers[i] * rng.uniform(0.9, 1.1) for i in range(game.battlefields)]
+        total = sum(weights)
+        return _repair_profile(game, [game.troops * w / total for w in weights])
+
+
+@dataclass
+class BackLoadedHeldoutOpponent:
+    """Exogenous held-out opponent emphasizing higher-index battlefields."""
+    name: str = "back_loaded_heldout"
+
+    def act(self, game: BlottoGame, opponent_history: list[Allocation], rng: random.Random) -> Allocation:
+        multipliers = (0.55, 0.65, 1.0, 1.5, 1.8)
+        weights = [game.values[i] * multipliers[i] * rng.uniform(0.9, 1.1) for i in range(game.battlefields)]
+        total = sum(weights)
+        return _repair_profile(game, [game.troops * w / total for w in weights])

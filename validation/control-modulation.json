@@ -1,0 +1,338 @@
+{
+  "schema": "pcc-colonel-blotto-control-modulation-v1.1",
+  "game": {
+    "troops": 10,
+    "values": [
+      1.0,
+      1.5,
+      2.0,
+      2.5,
+      3.0
+    ],
+    "battlefields": 5
+  },
+  "design": {
+    "learned_agents": 12,
+    "latent_pcc_weights_in_generator": false,
+    "signature_and_outcome_seeds_disjoint": true,
+    "contexts": [
+      "mean_profile_exploiter",
+      "alternating_weighted_heldout",
+      "front_loaded_heldout",
+      "back_loaded_heldout"
+    ],
+    "base_context": "mean_profile_exploiter",
+    "targets": [
+      "mean_payoff",
+      "mean_leverage_targeting",
+      "mean_opponent_viable_responses",
+      "lagged_counter_payoff"
+    ],
+    "cross_validation": "leave-one-agent-out",
+    "additive_model": "Pressure + Control + Chaos + context",
+    "interaction_model": "additive model + Control x context",
+    "ridge": 1.0,
+    "train_iterations": 8,
+    "train_rounds": 35,
+    "eval_rounds": 100,
+    "signature_seeds": 4,
+    "outcome_seeds": 4
+  },
+  "aggregate": {
+    "standardized_mae": {
+      "additive": 0.32649046821819294,
+      "control_interaction": 0.27740229848517567
+    },
+    "relative_mae_improvement_from_control_interactions": 0.15035100412245955,
+    "target_standardized_mae": {
+      "additive": {
+        "mean_payoff": 0.2781835567844932,
+        "mean_leverage_targeting": 0.3477849444784095,
+        "mean_opponent_viable_responses": 0.4176514673710589,
+        "lagged_counter_payoff": 0.26234190423881026
+      },
+      "control_interaction": {
+        "mean_payoff": 0.22427623451519088,
+        "mean_leverage_targeting": 0.2476898862771686,
+        "mean_opponent_viable_responses": 0.4157481480505665,
+        "lagged_counter_payoff": 0.22189492509777672
+      }
+    },
+    "target_relative_improvement": {
+      "mean_payoff": 0.19378328069571676,
+      "mean_leverage_targeting": 0.28780733551119786,
+      "mean_opponent_viable_responses": 0.004557195339149705,
+      "lagged_counter_payoff": 0.15417658592664094
+    },
+    "improved_targets": [
+      "mean_payoff",
+      "mean_leverage_targeting",
+      "mean_opponent_viable_responses",
+      "lagged_counter_payoff"
+    ],
+    "all_primary_checks_pass": true
+  },
+  "prespecified_checks": {
+    "control_context_interactions_reduce_loao_standardized_mae_by_at_least_5_percent": {
+      "pass": true,
+      "value": 0.15035100412245955,
+      "threshold": 0.05
+    },
+    "control_context_interactions_improve_at_least_two_behavioral_targets": {
+      "pass": true,
+      "improved_targets": [
+        "mean_payoff",
+        "mean_leverage_targeting",
+        "mean_opponent_viable_responses",
+        "lagged_counter_payoff"
+      ],
+      "count": 4,
+      "threshold": 2
+    }
+  },
+  "agent_signatures": {
+    "0": {
+      "pressure": 0.1365102095221404,
+      "control": 0.6777051919493362,
+      "chaos": 0.7704384288395718
+    },
+    "1": {
+      "pressure": 1.1902008039569527,
+      "control": -1.0719428134946622,
+      "chaos": -1.7431516294473832
+    },
+    "2": {
+      "pressure": 0.2555428024838698,
+      "control": 1.470623098926754,
+      "chaos": 0.49167802376534614
+    },
+    "3": {
+      "pressure": 0.30213891943121285,
+      "control": 0.13162992337407342,
+      "chaos": -0.18168817779158059
+    },
+    "4": {
+      "pressure": -1.4633902628458642,
+      "control": -1.2327606586618387,
+      "chaos": 0.07123089346190636
+    },
+    "5": {
+      "pressure": -1.6418794202118454,
+      "control": -1.8158878322328356,
+      "chaos": -0.26318964064064043
+    },
+    "6": {
+      "pressure": 0.37010336273733474,
+      "control": 0.8290806974022767,
+      "chaos": 0.36864425448743904
+    },
+    "7": {
+      "pressure": -0.11845163520496532,
+      "control": 0.9084180630270844,
+      "chaos": 0.5368988853330123
+    },
+    "8": {
+      "pressure": 0.5366069274084848,
+      "control": 0.8638531635595866,
+      "chaos": 0.16986646214274503
+    },
+    "9": {
+      "pressure": -0.6725222191036844,
+      "control": -0.18567430589476402,
+      "chaos": 0.5835899916062119
+    },
+    "10": {
+      "pressure": 1.1410341229032699,
+      "control": -0.32159295713924474,
+      "chaos": -1.264314274278149
+    },
+    "11": {
+      "pressure": -0.03589361107690793,
+      "control": -0.2534515708157639,
+      "chaos": 0.4599967825215247
+    }
+  },
+  "per_agent_cv_errors": [
+    {
+      "agent_id": 0,
+      "additive": {
+        "mean_payoff": 0.153669977817746,
+        "mean_leverage_targeting": 0.22590455928687542,
+        "mean_opponent_viable_responses": 0.25374629419138994,
+        "lagged_counter_payoff": 0.14690336038613394
+      },
+      "control_interaction": {
+        "mean_payoff": 0.1856226264186393,
+        "mean_leverage_targeting": 0.0819367533147739,
+        "mean_opponent_viable_responses": 0.25785379348580323,
+        "lagged_counter_payoff": 0.17233343360003373
+      }
+    },
+    {
+      "agent_id": 1,
+      "additive": {
+        "mean_payoff": 0.47925377225963195,
+        "mean_leverage_targeting": 0.6290191048640659,
+        "mean_opponent_viable_responses": 0.6731678296727963,
+        "lagged_counter_payoff": 0.47087481752578164
+      },
+      "control_interaction": {
+        "mean_payoff": 0.46375496273499095,
+        "mean_leverage_targeting": 0.6406979296259232,
+        "mean_opponent_viable_responses": 0.6713229203389797,
+        "lagged_counter_payoff": 0.4574916478741198
+      }
+    },
+    {
+      "agent_id": 2,
+      "additive": {
+        "mean_payoff": 0.40213254795695297,
+        "mean_leverage_targeting": 0.3950756287151689,
+        "mean_opponent_viable_responses": 0.35694137115748564,
+        "lagged_counter_payoff": 0.33316682760385974
+      },
+      "control_interaction": {
+        "mean_payoff": 0.1502852741829852,
+        "mean_leverage_targeting": 0.1174470334448961,
+        "mean_opponent_viable_responses": 0.36658411381338507,
+        "lagged_counter_payoff": 0.17272318974978482
+      }
+    },
+    {
+      "agent_id": 3,
+      "additive": {
+        "mean_payoff": 0.33076274504979086,
+        "mean_leverage_targeting": 0.5228515586051709,
+        "mean_opponent_viable_responses": 0.9994875339582496,
+        "lagged_counter_payoff": 0.3227228402053533
+      },
+      "control_interaction": {
+        "mean_payoff": 0.3284699676046265,
+        "mean_leverage_targeting": 0.5403876385389917,
+        "mean_opponent_viable_responses": 0.9954543192399999,
+        "lagged_counter_payoff": 0.3207345878722639
+      }
+    },
+    {
+      "agent_id": 4,
+      "additive": {
+        "mean_payoff": 0.13024711581221282,
+        "mean_leverage_targeting": 0.2966382173816325,
+        "mean_opponent_viable_responses": 0.4160300163656265,
+        "lagged_counter_payoff": 0.09593161751423457
+      },
+      "control_interaction": {
+        "mean_payoff": 0.1332306357939519,
+        "mean_leverage_targeting": 0.14056759214278697,
+        "mean_opponent_viable_responses": 0.4155496147592724,
+        "lagged_counter_payoff": 0.1553476960577287
+      }
+    },
+    {
+      "agent_id": 5,
+      "additive": {
+        "mean_payoff": 0.2263374589029185,
+        "mean_leverage_targeting": 0.49066788821490254,
+        "mean_opponent_viable_responses": 0.48541589687116027,
+        "lagged_counter_payoff": 0.239174707678378
+      },
+      "control_interaction": {
+        "mean_payoff": 0.25634231556145487,
+        "mean_leverage_targeting": 0.10709168802658814,
+        "mean_opponent_viable_responses": 0.48560408967706625,
+        "lagged_counter_payoff": 0.2439441136887125
+      }
+    },
+    {
+      "agent_id": 6,
+      "additive": {
+        "mean_payoff": 0.30476379745417953,
+        "mean_leverage_targeting": 0.22907563171438391,
+        "mean_opponent_viable_responses": 0.5046702309427887,
+        "lagged_counter_payoff": 0.30608238937549964
+      },
+      "control_interaction": {
+        "mean_payoff": 0.15525483874985704,
+        "mean_leverage_targeting": 0.16648440639801546,
+        "mean_opponent_viable_responses": 0.5039319149157045,
+        "lagged_counter_payoff": 0.16783897192578795
+      }
+    },
+    {
+      "agent_id": 7,
+      "additive": {
+        "mean_payoff": 0.36914068931505795,
+        "mean_leverage_targeting": 0.3112376282498882,
+        "mean_opponent_viable_responses": 0.31998450794928945,
+        "lagged_counter_payoff": 0.34114391525609444
+      },
+      "control_interaction": {
+        "mean_payoff": 0.20985516294257664,
+        "mean_leverage_targeting": 0.29989293526378663,
+        "mean_opponent_viable_responses": 0.31562618106513485,
+        "lagged_counter_payoff": 0.19220521435681842
+      }
+    },
+    {
+      "agent_id": 8,
+      "additive": {
+        "mean_payoff": 0.17597038158986464,
+        "mean_leverage_targeting": 0.3454135201575778,
+        "mean_opponent_viable_responses": 0.13327479087731764,
+        "lagged_counter_payoff": 0.16336089757855504
+      },
+      "control_interaction": {
+        "mean_payoff": 0.0881354396554401,
+        "mean_leverage_targeting": 0.16684070458050113,
+        "mean_opponent_viable_responses": 0.10752445604827476,
+        "lagged_counter_payoff": 0.09315264431805777
+      }
+    },
+    {
+      "agent_id": 9,
+      "additive": {
+        "mean_payoff": 0.21941164287015028,
+        "mean_leverage_targeting": 0.14489023287715388,
+        "mean_opponent_viable_responses": 0.15797922918109142,
+        "lagged_counter_payoff": 0.19782565375394703
+      },
+      "control_interaction": {
+        "mean_payoff": 0.1864324365620304,
+        "mean_leverage_targeting": 0.15129700016649889,
+        "mean_opponent_viable_responses": 0.1522975910020562,
+        "lagged_counter_payoff": 0.1692404086059479
+      }
+    },
+    {
+      "agent_id": 10,
+      "additive": {
+        "mean_payoff": 0.17225681536553675,
+        "mean_leverage_targeting": 0.22957063697210933,
+        "mean_opponent_viable_responses": 0.1736660050854515,
+        "lagged_counter_payoff": 0.17063019454294193
+      },
+      "control_interaction": {
+        "mean_payoff": 0.21762265731710634,
+        "mean_leverage_targeting": 0.23206292785357535,
+        "mean_opponent_viable_responses": 0.18768635220429766,
+        "lagged_counter_payoff": 0.20740886543313103
+      }
+    },
+    {
+      "agent_id": 11,
+      "additive": {
+        "mean_payoff": 0.3742557370198759,
+        "mean_leverage_targeting": 0.353074726701985,
+        "mean_opponent_viable_responses": 0.53745390220006,
+        "lagged_counter_payoff": 0.3602856294449441
+      },
+      "control_interaction": {
+        "mean_payoff": 0.31630849665863164,
+        "mean_leverage_targeting": 0.32757202596968543,
+        "mean_opponent_viable_responses": 0.5295424300568233,
+        "lagged_counter_payoff": 0.31031832769093404
+      }
+    }
+  ],
+  "claim_scope": "conditional-modulation test in independently optimized synthetic Blotto agents; tests predictive role of Control x context interactions, not a causal human-behavior claim"
+}

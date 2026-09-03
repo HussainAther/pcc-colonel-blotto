@@ -2002,3 +2002,226 @@ def write_emergent_learned_agents(
     ]
     (out / "EMERGENT_LEARNED_AGENTS.md").write_text("\n".join(lines) + "\n")
     return result
+
+# ---------------------------------------------------------------------------
+# v1.1 Control as context-dependent modulation
+# ---------------------------------------------------------------------------
+
+CONTROL_MOD_MIN_MAE_IMPROVEMENT = 0.05
+CONTROL_MOD_MIN_TARGETS_IMPROVED = 2
+CONTROL_MOD_RIDGE = 1.0
+
+
+def _train_emergent_population(train_iterations: int, train_rounds: int):
+    """Recreate the v1.0 independent population without PCC supervision."""
+    from .learned import train_linear_agent
+    game = BlottoGame()
+    objectives = ["payoff", "win_rate", "risk_adjusted", "robust"]
+    curricula = {
+        "static": [StaticWeightedOpponent],
+        "adaptive": [AdaptiveCounterOpponent],
+        "mixed": [StaticWeightedOpponent, AdaptiveCounterOpponent],
+    }
+    trained = []
+    idx = 0
+    for objective in objectives:
+        for curriculum_name, factories in curricula.items():
+            seed = 7001 + idx * 313
+            agent, metadata = train_linear_agent(
+                game=game, opponent_factories=factories, objective=objective, seed=seed,
+                iterations=train_iterations, rounds=train_rounds, eval_seeds=2,
+            )
+            trained.append({"agent": agent, "objective": objective, "curriculum": curriculum_name, "metadata": metadata})
+            idx += 1
+    return game, trained
+
+
+def _fit_scalar_ridge(rows: list[dict], feature_names: list[str], target: str, ridge: float) -> dict:
+    means = {f: sum(r["features"][f] for r in rows) / len(rows) for f in feature_names}
+    scales = {}
+    for f in feature_names:
+        var = sum((r["features"][f] - means[f]) ** 2 for r in rows) / len(rows)
+        scales[f] = math.sqrt(var) if var > 1e-12 else 1.0
+    y_mean = sum(r[target] for r in rows) / len(rows)
+    y_var = sum((r[target] - y_mean) ** 2 for r in rows) / len(rows)
+    y_scale = math.sqrt(y_var) if y_var > 1e-12 else 1.0
+    x = [[1.0] + [(r["features"][f] - means[f]) / scales[f] for f in feature_names] for r in rows]
+    y = [(r[target] - y_mean) / y_scale for r in rows]
+    p = len(feature_names) + 1
+    xtx = [[0.0] * p for _ in range(p)]
+    xty = [0.0] * p
+    for xx, yy in zip(x, y):
+        for i in range(p):
+            xty[i] += xx[i] * yy
+            for j in range(p):
+                xtx[i][j] += xx[i] * xx[j]
+    for i in range(1, p):
+        xtx[i][i] += ridge
+    return {"means": means, "scales": scales, "coef": _solve_linear_system(xtx, xty), "y_mean": y_mean, "y_scale": y_scale}
+
+
+def _predict_scalar_z(model: dict, features: dict[str, float], feature_names: list[str]) -> float:
+    x = [1.0] + [(features[f] - model["means"][f]) / model["scales"][f] for f in feature_names]
+    return sum(c * v for c, v in zip(model["coef"], x))
+
+
+def run_control_modulation(
+    train_iterations: int = EMERGENCE_TRAIN_ITERATIONS,
+    train_rounds: int = EMERGENCE_TRAIN_ROUNDS,
+    eval_rounds: int = EMERGENCE_EVAL_ROUNDS,
+    signature_seeds: int = 4,
+    outcome_seeds: int = 4,
+) -> dict:
+    """v1.1: test whether Control behaves as context-dependent modulation rather than an orthogonal axis."""
+    from .learned import AlternatingWeightedOpponent, FrontLoadedHeldoutOpponent, BackLoadedHeldoutOpponent
+
+    game, trained = _train_emergent_population(train_iterations, train_rounds)
+    contexts = {
+        "mean_profile_exploiter": MeanProfileExploiter,
+        "alternating_weighted_heldout": AlternatingWeightedOpponent,
+        "front_loaded_heldout": FrontLoadedHeldoutOpponent,
+        "back_loaded_heldout": BackLoadedHeldoutOpponent,
+    }
+    # Signatures and outcomes are measured on disjoint random seeds.
+    signature_rows = []
+    outcome_contexts = []
+    for ai, item in enumerate(trained):
+        sig_contexts = {}
+        for ci, (cname, factory) in enumerate(contexts.items()):
+            reps = [_evaluate_learned_agent(item["agent"], factory, game=game, rounds=eval_rounds,
+                                             seed=1_100_001 + ai * 1009 + ci * 101 + rep)
+                    for rep in range(signature_seeds)]
+            sig_contexts[cname] = _mean_feature_rows(reps)
+        signature_rows.append({"agent_id": ai, "objective": item["objective"], "curriculum": item["curriculum"], "contexts": sig_contexts})
+        for ci, (cname, factory) in enumerate(contexts.items()):
+            reps = [_evaluate_learned_agent(item["agent"], factory, game=game, rounds=eval_rounds,
+                                             seed=2_200_001 + ai * 1009 + ci * 101 + rep)
+                    for rep in range(outcome_seeds)]
+            outcome_contexts.append({"agent_id": ai, "context": cname, "behavior": _mean_feature_rows(reps)})
+
+    # Preserve v1.0 signature definitions, using their original two held-out contexts.
+    sig_for_v10 = [{"agent_id": r["agent_id"], "objective": r["objective"], "curriculum": r["curriculum"],
+                    "contexts": {k: r["contexts"][k] for k in ("mean_profile_exploiter", "alternating_weighted_heldout")}}
+                   for r in signature_rows]
+    signatures = _signature_scores(sig_for_v10)
+    sig_by_agent = {i: {axis: signatures[axis][i] for axis in ("pressure", "control", "chaos")} for i in range(len(trained))}
+
+    context_names = list(contexts)
+    base_context = context_names[0]
+    additive_features = ["pressure", "control", "chaos"] + [f"ctx:{c}" for c in context_names[1:]]
+    interaction_features = additive_features + [f"control_x_ctx:{c}" for c in context_names[1:]]
+    model_rows = []
+    targets = ["mean_payoff", "mean_leverage_targeting", "mean_opponent_viable_responses", "lagged_counter_payoff"]
+    for row in outcome_contexts:
+        s = sig_by_agent[row["agent_id"]]
+        feats = {"pressure": s["pressure"], "control": s["control"], "chaos": s["chaos"]}
+        for c in context_names[1:]:
+            indicator = 1.0 if row["context"] == c else 0.0
+            feats[f"ctx:{c}"] = indicator
+            feats[f"control_x_ctx:{c}"] = s["control"] * indicator
+        mr = {"agent_id": row["agent_id"], "context": row["context"], "features": feats}
+        mr.update({t: row["behavior"][t] for t in targets})
+        model_rows.append(mr)
+
+    errors = {"additive": {t: [] for t in targets}, "control_interaction": {t: [] for t in targets}}
+    per_agent = []
+    for holdout in range(len(trained)):
+        train = [r for r in model_rows if r["agent_id"] != holdout]
+        test = [r for r in model_rows if r["agent_id"] == holdout]
+        agent_err = {"agent_id": holdout, "additive": {}, "control_interaction": {}}
+        for target in targets:
+            for model_name, features in (("additive", additive_features), ("control_interaction", interaction_features)):
+                model = _fit_scalar_ridge(train, features, target, CONTROL_MOD_RIDGE)
+                fold_errors = []
+                for r in test:
+                    pred_z = _predict_scalar_z(model, r["features"], features)
+                    true_z = (r[target] - model["y_mean"]) / model["y_scale"]
+                    e = abs(pred_z - true_z)
+                    errors[model_name][target].append(e)
+                    fold_errors.append(e)
+                agent_err[model_name][target] = sum(fold_errors) / len(fold_errors)
+        per_agent.append(agent_err)
+
+    target_mae = {m: {t: sum(v) / len(v) for t, v in d.items()} for m, d in errors.items()}
+    aggregate_mae = {m: sum(target_mae[m].values()) / len(targets) for m in target_mae}
+    overall_improvement = (aggregate_mae["additive"] - aggregate_mae["control_interaction"]) / aggregate_mae["additive"]
+    target_improvement = {t: (target_mae["additive"][t] - target_mae["control_interaction"][t]) / target_mae["additive"][t] for t in targets}
+    improved_targets = [t for t, x in target_improvement.items() if x > 0]
+    checks = {
+        "control_context_interactions_reduce_loao_standardized_mae_by_at_least_5_percent": {
+            "pass": overall_improvement >= CONTROL_MOD_MIN_MAE_IMPROVEMENT,
+            "value": overall_improvement, "threshold": CONTROL_MOD_MIN_MAE_IMPROVEMENT,
+        },
+        "control_context_interactions_improve_at_least_two_behavioral_targets": {
+            "pass": len(improved_targets) >= CONTROL_MOD_MIN_TARGETS_IMPROVED,
+            "improved_targets": improved_targets, "count": len(improved_targets), "threshold": CONTROL_MOD_MIN_TARGETS_IMPROVED,
+        },
+    }
+    return {
+        "schema": "pcc-colonel-blotto-control-modulation-v1.1",
+        "game": {"troops": game.troops, "values": list(game.values), "battlefields": game.battlefields},
+        "design": {
+            "learned_agents": len(trained), "latent_pcc_weights_in_generator": False,
+            "signature_and_outcome_seeds_disjoint": True,
+            "contexts": context_names, "base_context": base_context,
+            "targets": targets, "cross_validation": "leave-one-agent-out",
+            "additive_model": "Pressure + Control + Chaos + context",
+            "interaction_model": "additive model + Control x context",
+            "ridge": CONTROL_MOD_RIDGE,
+            "train_iterations": train_iterations, "train_rounds": train_rounds,
+            "eval_rounds": eval_rounds, "signature_seeds": signature_seeds, "outcome_seeds": outcome_seeds,
+        },
+        "aggregate": {
+            "standardized_mae": aggregate_mae,
+            "relative_mae_improvement_from_control_interactions": overall_improvement,
+            "target_standardized_mae": target_mae,
+            "target_relative_improvement": target_improvement,
+            "improved_targets": improved_targets,
+            "all_primary_checks_pass": all(x["pass"] for x in checks.values()),
+        },
+        "prespecified_checks": checks,
+        "agent_signatures": sig_by_agent,
+        "per_agent_cv_errors": per_agent,
+        "claim_scope": "conditional-modulation test in independently optimized synthetic Blotto agents; tests predictive role of Control x context interactions, not a causal human-behavior claim",
+    }
+
+
+def write_control_modulation(
+    output_dir: str | Path,
+    train_iterations: int = EMERGENCE_TRAIN_ITERATIONS,
+    train_rounds: int = EMERGENCE_TRAIN_ROUNDS,
+    eval_rounds: int = EMERGENCE_EVAL_ROUNDS,
+    signature_seeds: int = 4,
+    outcome_seeds: int = 4,
+) -> dict:
+    out = Path(output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    result = run_control_modulation(train_iterations, train_rounds, eval_rounds, signature_seeds, outcome_seeds)
+    (out / "control-modulation.json").write_text(json.dumps(result, indent=2) + "\n")
+    a = result["aggregate"]
+    lines = [
+        "# PCC Colonel Blotto v1.1 Control as Context-Dependent Modulation",
+        "",
+        "This experiment asks whether Control is better represented as a conditional modifier of behavior than as a standalone orthogonal component. PCC signatures are measured on seeds disjoint from the outcome trajectories.",
+        "",
+        "## Leave-one-agent-out prediction",
+        "",
+        f"- additive standardized MAE: **{a['standardized_mae']['additive']:.4f}**",
+        f"- Control×context standardized MAE: **{a['standardized_mae']['control_interaction']:.4f}**",
+        f"- relative improvement: **{a['relative_mae_improvement_from_control_interactions']:.2%}**",
+        f"- targets improved: **{', '.join(a['improved_targets']) if a['improved_targets'] else 'none'}**",
+        "",
+        "## Per-target relative improvement",
+        "",
+    ]
+    for target, value in a["target_relative_improvement"].items():
+        lines.append(f"- {target}: **{value:+.2%}**")
+    lines += ["", "## Prespecified checks", ""]
+    for name, item in result["prespecified_checks"].items():
+        lines.append(f"- **{name}**: {'PASS' if item['pass'] else 'FAIL'}")
+    lines += [
+        "", "## Interpretation guardrail", "",
+        "A pass supports a predictive/modulatory interpretation of Control in this learned-agent population. A failure means the v1.0 entanglement should not be rescued by interaction language without further evidence. This is not a causal human-behavior result.",
+    ]
+    (out / "CONTROL_MODULATION.md").write_text("\n".join(lines) + "\n")
+    return result

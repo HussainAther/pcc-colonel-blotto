@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from .experiment import write_chaos_exploiter_falsification, write_control_estimator_ablation, write_control_history_destruction, write_control_regime_switching, write_pressure_leverage_intervention, write_pressure_matched_intervention, write_probe, write_observational_recovery, write_pressure_control_boundary, write_emergent_learned_agents
+from .experiment import write_chaos_exploiter_falsification, write_control_estimator_ablation, write_control_history_destruction, write_control_regime_switching, write_pressure_leverage_intervention, write_pressure_matched_intervention, write_probe, write_observational_recovery, write_pressure_control_boundary, write_emergent_learned_agents, write_control_modulation
 
 
 def main() -> None:
@@ -48,6 +48,13 @@ def main() -> None:
     emergence.add_argument("--train-rounds", type=int, default=35)
     emergence.add_argument("--eval-rounds", type=int, default=100)
     emergence.add_argument("--eval-seeds", type=int, default=4)
+    modulation = sub.add_parser("control-modulation", help="run the v1.1 Control-as-context-modulation test")
+    modulation.add_argument("--output-dir", default="validation")
+    modulation.add_argument("--train-iterations", type=int, default=8)
+    modulation.add_argument("--train-rounds", type=int, default=35)
+    modulation.add_argument("--eval-rounds", type=int, default=100)
+    modulation.add_argument("--signature-seeds", type=int, default=4)
+    modulation.add_argument("--outcome-seeds", type=int, default=4)
     args = parser.parse_args()
     if args.command == "mechanism-probe":
         result = write_probe(args.output_dir, rounds=args.rounds, seeds=args.seeds)
@@ -89,6 +96,14 @@ def main() -> None:
         print(f"midpoint baseline MAE: {a['edge_midpoint_baseline_mae']:.6f}")
         print(f"relative improvement: {a['relative_improvement_over_midpoint']:.3%}")
         print(f"Pressure correlation: {a['pressure_prediction_correlation']:.6f}")
+        for name, item in result["prespecified_checks"].items():
+            print(f"{name}: {'PASS' if item['pass'] else 'FAIL'}")
+    elif args.command == "control-modulation":
+        result = write_control_modulation(args.output_dir, args.train_iterations, args.train_rounds, args.eval_rounds, args.signature_seeds, args.outcome_seeds)
+        a = result["aggregate"]
+        print(f"additive standardized MAE: {a['standardized_mae']['additive']:.6f}")
+        print(f"Control x context standardized MAE: {a['standardized_mae']['control_interaction']:.6f}")
+        print(f"relative improvement: {a['relative_mae_improvement_from_control_interactions']:.3%}")
         for name, item in result["prespecified_checks"].items():
             print(f"{name}: {'PASS' if item['pass'] else 'FAIL'}")
     elif args.command == "emergent-learned-agents":

@@ -277,3 +277,40 @@ python -m pcc_colonel_blotto emergent-learned-agents \
   --eval-rounds 100 \
   --eval-seeds 4
 ```
+
+## v1.1 Control as context-dependent modulation
+
+v1.1 follows the v1.0 failure of Control to occupy an independent PC3. Rather than forcing orthogonality, it tests whether Control improves prediction as a **context-dependent modifier** of learned-agent behavior.
+
+The same 12 independently optimized agents are recreated with no latent PCC weights. PCC behavioral signatures are measured on one set of held-out seeds, while outcome behaviors are measured on a completely disjoint seed set across four opponent contexts. Leave-one-agent-out ridge models compare:
+
+- additive: `Pressure + Control + Chaos + context`
+- modulatory: additive + `Control x context`
+
+Frozen result:
+
+- additive standardized MAE: **0.3265**
+- Control x context standardized MAE: **0.2774**
+- relative improvement: **15.04%**
+- prespecified >=5% improvement criterion: **PASS**
+- behavioral targets improved: **4/4**
+- leverage-targeting improvement: **28.78%**
+- payoff improvement: **19.38%**
+- lagged counter-payoff improvement: **15.42%**
+- viable-response-count improvement: **0.46%**
+
+This supports a narrower architecture in which Control is predictive as **conditional modulation across opponent contexts**, rather than requiring it to be an orthogonal latent axis. The near-zero improvement for viable-response count also suggests that the established Pressure response-constriction mechanism remains comparatively distinct.
+
+Run it with:
+
+```bash
+python -m pcc_colonel_blotto control-modulation \
+  --output-dir validation \
+  --train-iterations 8 \
+  --train-rounds 35 \
+  --eval-rounds 100 \
+  --signature-seeds 4 \
+  --outcome-seeds 4
+```
+
+See `docs/CONTROL_MODULATION_PROTOCOL.md` and `validation/CONTROL_MODULATION.md`.

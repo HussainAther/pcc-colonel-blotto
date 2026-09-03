@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.0 - Control as context-dependent modulation
+
+- Reframed the v1.0 Control non-orthogonality result as a prospective interaction test rather than forcing a third PCA axis.
+- Added two new exogenous held-out opponent contexts and evaluated four contexts total.
+- Measured PCC signatures and prediction outcomes on disjoint seed sets.
+- Added leave-one-agent-out ridge comparison between an additive `P + C + H + context` model and a `Control x context` interaction model.
+- Frozen result: standardized LOAO MAE falls from **0.3265** to **0.2774**, a **15.04%** improvement versus the prespecified >=5% threshold.
+- All four behavioral targets improve; the largest gain is leverage targeting (**28.78%**), while viable-response count changes only **0.46%**.
+- Both prespecified checks PASS. This supports a predictive modulatory role for Control in this learned-agent population, not a human or universal causal claim.
+- Added protocol, CLI command, validation output, and regression tests.
+
 ## 0.9.0 - Pressure-Control boundary falsification
 
 - Restricted latent mixtures to the exact Pressure-Control edge with Chaos fixed at zero.
